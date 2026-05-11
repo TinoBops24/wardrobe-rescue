@@ -1,0 +1,329 @@
+﻿@page
+@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.Products.IndexModel
+@{
+    ViewData["Title"] = "Products";
+    var allTags = Model.Products
+        .SelectMany(p => p.Tags)
+        .Where(t => !string.IsNullOrEmpty(t))
+        .Distinct()
+        .OrderBy(t => t)
+        .Take(20)
+        .ToList();
+}
+
+<div role="main" class="main shop pt-4">
+    <div class="container">
+
+        @if (TempData["CartSuccess"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["CartSuccess"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="row">
+
+            <!-- ── Sidebar ── -->
+            <div class="col-lg-3">
+                <aside class="sidebar">
+
+                    <!-- Search -->
+                    <form method="get">
+                        <input type="hidden" name="SelectedCategory" value="@Model.SelectedCategory" />
+                        <input type="hidden" name="SelectedGender" value="@Model.SelectedGender" />
+                        <div class="input-group mb-3 pb-1">
+                            <input class="form-control text-1"
+                                   placeholder="Search..."
+                                   name="SearchQuery"
+                                   value="@Model.SearchQuery"
+                                   type="text">
+                            <button type="submit" class="btn btn-dark text-1 p-2">
+                                <i class="fas fa-search m-2"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Categories -->
+                    <h5 class="font-weight-semi-bold pt-3">Categories</h5>
+                    <ul class="nav nav-list flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link @(string.IsNullOrEmpty(Model.SelectedCategory) ? "text-color-primary font-weight-semibold" : "")"
+                               asp-page="/Products/Index"
+                               asp-route-SearchQuery="@Model.SearchQuery"
+                               asp-route-SelectedGender="@Model.SelectedGender">
+                                All
+                            </a>
+                        </li>
+                        @foreach (var cat in Model.Categories)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(Model.SelectedCategory == cat ? "text-color-primary font-weight-semibold" : "")"
+                                   asp-page="/Products/Index"
+                                   asp-route-SelectedCategory="@cat"
+                                   asp-route-SearchQuery="@Model.SearchQuery"
+                                   asp-route-SelectedGender="@Model.SelectedGender">
+                                    @cat
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                    <!-- Gender Filter -->
+                    @if (Model.Genders.Any())
+                    {
+                        <h5 class="font-weight-semi-bold pt-4">Gender</h5>
+                        <ul class="nav nav-list flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link @(string.IsNullOrEmpty(Model.SelectedGender) ? "text-color-primary font-weight-semibold" : "")"
+                                   asp-page="/Products/Index"
+                                   asp-route-SearchQuery="@Model.SearchQuery"
+                                   asp-route-SelectedCategory="@Model.SelectedCategory">
+                                    All
+                                </a>
+                            </li>
+                            @foreach (var gender in Model.Genders)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @(Model.SelectedGender == gender ? "text-color-primary font-weight-semibold" : "")"
+                                       asp-page="/Products/Index"
+                                       asp-route-SelectedGender="@gender"
+                                       asp-route-SearchQuery="@Model.SearchQuery"
+                                       asp-route-SelectedCategory="@Model.SelectedCategory">
+                                        @gender
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    }
+
+                    <!-- Tags -->
+                    @if (allTags.Any())
+                    {
+                        <h5 class="font-weight-semi-bold pt-4">Tags</h5>
+                        <div class="mb-3 pb-1">
+                            @foreach (var tag in allTags)
+                            {
+                                <a asp-page="/Products/Index"
+                                   asp-route-SearchQuery="@tag"
+                                   asp-route-SelectedCategory="@Model.SelectedCategory"
+                                   asp-route-SelectedGender="@Model.SelectedGender">
+                                    <span class="badge badge-dark badge-sm rounded-pill text-uppercase px-2 py-1 me-1">@tag</span>
+                                </a>
+                            }
+                        </div>
+                    }
+
+                    <!-- Price Filter -->
+                    <div class="row mb-5">
+                        <div class="col-sm-4 col-lg-12">
+                            <h5 class="font-weight-semi-bold pt-4">Price (R)</h5>
+                            <form method="get">
+                                @if (!string.IsNullOrEmpty(Model.SearchQuery))
+                                {
+                                    <input type="hidden" name="SearchQuery" value="@Model.SearchQuery" />
+                                }
+                                @if (!string.IsNullOrEmpty(Model.SelectedCategory))
+                                {
+                                    <input type="hidden" name="SelectedCategory" value="@Model.SelectedCategory" />
+                                }
+                                @if (!string.IsNullOrEmpty(Model.SelectedGender))
+                                {
+                                    <input type="hidden" name="SelectedGender" value="@Model.SelectedGender" />
+                                }
+                                <div class="d-flex gap-2 mb-2">
+                                    <input class="form-control form-control-sm text-1"
+                                           type="number" name="MinPrice" placeholder="Min"
+                                           value="@Model.MinPrice" min="0" step="1">
+                                    <input class="form-control form-control-sm text-1"
+                                           type="number" name="MaxPrice" placeholder="Max"
+                                           value="@Model.MaxPrice" min="0" step="1">
+                                </div>
+                                <button type="submit" class="btn btn-dark btn-sm w-100 text-1">Apply</button>
+                                @if (Model.MinPrice.HasValue || Model.MaxPrice.HasValue)
+                                {
+                                    <a asp-page="/Products/Index"
+                                       asp-route-SearchQuery="@Model.SearchQuery"
+                                       asp-route-SelectedCategory="@Model.SelectedCategory"
+                                       asp-route-SelectedGender="@Model.SelectedGender"
+                                       class="btn btn-outline-secondary btn-sm w-100 mt-1 text-1">Clear</a>
+                                }
+                            </form>
+                        </div>
+
+                        <!-- Active Filters -->
+                        @if (!string.IsNullOrEmpty(Model.SearchQuery) || !string.IsNullOrEmpty(Model.SelectedCategory) || !string.IsNullOrEmpty(Model.SelectedGender))
+                        {
+                            <div class="col-sm-4 col-lg-12 mt-4">
+                                <h5 class="font-weight-semi-bold">Active Filters</h5>
+                                @if (!string.IsNullOrEmpty(Model.SearchQuery))
+                                {
+                                    <span class="badge badge-dark badge-sm rounded-pill text-uppercase px-2 py-1 me-1">
+                                        "@Model.SearchQuery"
+                                    </span>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.SelectedCategory))
+                                {
+                                    <span class="badge badge-dark badge-sm rounded-pill text-uppercase px-2 py-1 me-1">
+                                        @Model.SelectedCategory
+                                    </span>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.SelectedGender))
+                                {
+                                    <span class="badge badge-dark badge-sm rounded-pill text-uppercase px-2 py-1 me-1">
+                                        @Model.SelectedGender
+                                    </span>
+                                }
+                                <br />
+                                <a asp-page="/Products/Index" class="text-1 text-color-hover-primary mt-1 d-inline-block">
+                                    Clear all
+                                </a>
+                            </div>
+                        }
+                    </div>
+
+                </aside>
+            </div>
+
+            <!-- ── Product Grid ── -->
+            <div class="col-lg-9">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <p class="text-muted text-2 mb-0">
+                        @Model.Products.Count product@(Model.Products.Count == 1 ? "" : "s") found
+                        @if (!string.IsNullOrEmpty(Model.SelectedCategory))
+                        {
+                            <span> in <strong>@Model.SelectedCategory</strong></span>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.SelectedGender))
+                        {
+                            <span> — <strong>@Model.SelectedGender</strong></span>
+                        }
+                    </p>
+                </div>
+
+                @if (!Model.Products.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No products found</h4>
+                        <p class="text-muted">Try adjusting your search or filters.</p>
+                        <a asp-page="/Products/Index" class="btn btn-dark mt-2">View All Products</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="masonry-loader masonry-loader-showing">
+                        <div class="row products product-thumb-info-list"
+                             data-plugin-masonry
+                             data-plugin-options="{'layoutMode': 'fitRows'}">
+
+                            @foreach (var product in Model.Products)
+                            {
+                                var isWishlisted = Model.WishlistProductIds.Contains(product.Id);
+
+                                <div class="col-sm-6">
+                                    <div class="product mb-0">
+                                        <div class="product-thumb-info border-0 mb-3">
+
+                                            @if (product.IsNew || product.DiscountPercentage > 0)
+                                            {
+                                                <div class="product-thumb-info-badges-wrapper">
+                                                    @if (product.IsNew)
+                                                    {
+                                                        <span class="badge badge-ecommerce text-bg-success">NEW</span>
+                                                    }
+                                                    @if (product.DiscountPercentage > 0)
+                                                    {
+                                                        <span class="badge badge-ecommerce text-bg-danger">@(product.DiscountPercentage)% OFF</span>
+                                                    }
+                                                </div>
+                                            }
+
+                                            <div class="addtocart-btn-wrapper">
+                                                <a asp-page="/Products/Details"
+                                                   asp-route-id="@product.Id"
+                                                   class="text-decoration-none addtocart-btn"
+                                                   title="View Product">
+                                                    <i class="icons icon-bag"></i>
+                                                </a>
+                                            </div>
+
+                                            <a asp-page="/Products/Details" asp-route-id="@product.Id">
+                                                <div class="product-thumb-info-image bg-white border">
+                                                    <img alt="@product.Name"
+                                                         class="img-fluid"
+                                                         src="@(string.IsNullOrEmpty(product.ImageUrl) ? "/porto/img/products/product-grey-1.jpg" : product.ImageUrl)"
+                                                         style="height:280px;object-fit:contain;width:100%;padding:8px;">
+                                                </div>
+                                            </a>
+
+                                        </div>
+
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <a asp-page="/Products/Index"
+                                                   asp-route-SelectedCategory="@product.Category"
+                                                   asp-route-SelectedGender="@Model.SelectedGender"
+                                                   asp-route-SearchQuery="@Model.SearchQuery"
+                                                   class="d-block text-uppercase text-decoration-none text-color-default text-color-hover-primary line-height-1 text-0 mb-1">
+                                                    @product.Category
+                                                </a>
+                                                <h3 class="text-3-5 font-weight-medium font-alternative text-transform-none line-height-3 mb-0">
+                                                    <a asp-page="/Products/Details"
+                                                       asp-route-id="@product.Id"
+                                                       class="text-color-dark text-color-hover-primary">
+                                                        @product.Name
+                                                    </a>
+                                                </h3>
+                                            </div>
+
+                                            @* ── Wishlist toggle ── *@
+                                            <form method="post" asp-page-handler="ToggleWishlist">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="productId" value="@product.Id" />
+                                                <input type="hidden" name="SearchQuery" value="@Model.SearchQuery" />
+                                                <input type="hidden" name="SelectedCategory" value="@Model.SelectedCategory" />
+                                                <input type="hidden" name="SelectedGender" value="@Model.SelectedGender" />
+                                                <input type="hidden" name="MinPrice" value="@Model.MinPrice" />
+                                                <input type="hidden" name="MaxPrice" value="@Model.MaxPrice" />
+                                                <button type="submit"
+                                                        class="btn btn-link p-0 text-decoration-none"
+                                                        title="@(isWishlisted ? "Remove from Wishlist" : "Save to Wishlist")">
+                                                    <i class="@(isWishlisted ? "fas" : "far") fa-heart text-4"
+                                                       style="color: @(isWishlisted ? "#e74c3c" : "inherit");"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                        <div title="Rated @product.Rating out of 5">
+                                            <input type="text" class="d-none"
+                                                   value="@product.Rating"
+                                                   data-plugin-star-rating
+                                                   data-plugin-options="{'displayOnly': true, 'color': 'default', 'size':'xs'}">
+                                        </div>
+
+                                        <p class="price text-5 mb-3">
+                                            @if (product.DiscountPrice.HasValue)
+                                            {
+                                                <span class="sale text-color-dark font-weight-semi-bold">R @(product.DiscountPrice.Value.ToString("N2"))</span>
+                                                <span class="amount text-decoration-line-through text-muted ms-1">R @(product.Price.ToString("N2"))</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="sale text-color-dark font-weight-semi-bold">R @(product.Price.ToString("N2"))</span>
+                                            }
+                                        </p>
+
+                                    </div>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>

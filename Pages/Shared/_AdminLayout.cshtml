@@ -1,0 +1,259 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@ViewData["Title"] - Wardrobe Rescue Admin</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="~/admin/assets/images/favicon.ico">
+
+    <link rel="stylesheet" type="text/css" href="~/admin/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="~/admin/assets/vendors/css/vendors.min.css">
+    <link rel="stylesheet" type="text/css" href="~/admin/assets/css/theme.min.css">
+
+    <style>
+        .b-brand {
+            overflow: hidden;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            a
+        }
+
+        .nxl-mini-sidebar .b-brand .brand-text {
+            display: none;
+        }
+    </style>
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body>
+
+    <nav class="nxl-navigation">
+        <div class="navbar-wrapper">
+
+            <div class="m-header">
+                <a asp-page="/Admin/Dashboard" class="b-brand text-decoration-none">
+                    <span class="fw-bold text-dark fs-5 brand-text">Wardrobe</span><span class="fw-bold text-primary fs-5 brand-text">Rescue</span>
+                </a>
+            </div>
+
+            <div class="navbar-content">
+                <ul class="nxl-navbar">
+
+                    <li class="nxl-item nxl-caption">
+                        <label>Main</label>
+                    </li>
+
+                    <li class="nxl-item">
+                        <a asp-page="/Admin/Dashboard" class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-airplay"></i></span>
+                            <span class="nxl-mtext">Dashboard</span>
+                        </a>
+                    </li>
+
+                    <li class="nxl-item nxl-caption">
+                        <label>Catalogue</label>
+                    </li>
+
+                    <li class="nxl-item nxl-hasmenu">
+                        <a href="javascript:void(0);" class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-tag"></i></span>
+                            <span class="nxl-mtext">Products</span>
+                            <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
+                        </a>
+                        <ul class="nxl-submenu">
+                            <li class="nxl-item">
+                                <a class="nxl-link" asp-page="/Admin/Products/Index">All Products</a>
+                            </li>
+                            <li class="nxl-item">
+                                <a class="nxl-link" asp-page="/Admin/Products/Create">Add Product</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nxl-item nxl-caption">
+                        <label>Sales</label>
+                    </li>
+
+                    <li class="nxl-item">
+                        <a asp-page="/Admin/Orders/Index" class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-shopping-bag"></i></span>
+                            <span class="nxl-mtext">Orders</span>
+                        </a>
+                    </li>
+
+                    <li class="nxl-item">
+                        <a asp-page="/Admin/Customers/Index" class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-users"></i></span>
+                            <span class="nxl-mtext">Customers</span>
+                        </a>
+                    </li>
+
+                    <li class="nxl-item nxl-caption">
+                        <label>Reports</label>
+                    </li>
+
+                    <li class="nxl-item nxl-hasmenu">
+                        <a href="javascript:void(0);" class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-bar-chart-2"></i></span>
+                            <span class="nxl-mtext">Reports</span>
+                            <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
+                        </a>
+                        <ul class="nxl-submenu">
+                            <li class="nxl-item">
+                                <a class="nxl-link" asp-page="/Admin/Reports/Financial">Financial</a>
+                            </li>
+                            <li class="nxl-item">
+                                <a class="nxl-link" asp-page="/Admin/Reports/Products">Products</a>
+                            </li>
+                            <li class="nxl-item">
+                                <a class="nxl-link" asp-page="/Admin/Reports/Customers">Customers</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nxl-item nxl-caption">
+                        <label>System</label>
+                    </li>
+
+                    <li class="nxl-item">
+                        <a href="javascript:void(0);" class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-activity"></i></span>
+                            <span class="nxl-mtext">Performance</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="nxl-header">
+        <div class="header-wrapper">
+
+            <div class="header-left d-flex align-items-center gap-4">
+                <a href="javascript:void(0);" class="nxl-head-mobile-toggler" id="mobile-collapse">
+                    <div class="hamburger hamburger--arrowturn">
+                        <div class="hamburger-box">
+                            <div class="hamburger-inner"></div>
+                        </div>
+                    </div>
+                </a>
+                <div class="nxl-navigation-toggle">
+                    <a href="javascript:void(0);" id="menu-mini-button">
+                        <i class="feather-align-left"></i>
+                    </a>
+                    <a href="javascript:void(0);" id="menu-expend-button" style="display: none">
+                        <i class="feather-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="header-right ms-auto">
+                <div class="d-flex align-items-center">
+
+                    <div class="nxl-h-item dark-light-theme">
+                        <a href="javascript:void(0);" class="nxl-head-link me-0 dark-button">
+                            <i class="feather-moon"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="nxl-head-link me-0 light-button" style="display: none">
+                            <i class="feather-sun"></i>
+                        </a>
+                    </div>
+
+                    <div class="nxl-h-item">
+                        <a asp-page="/Index" class="nxl-head-link me-0" data-bs-toggle="tooltip" title="View Store">
+                            <i class="feather-globe"></i>
+                        </a>
+                    </div>
+
+                    <div class="dropdown nxl-h-item">
+                        <a href="javascript:void(0);" data-bs-toggle="dropdown" role="button" data-bs-auto-close="outside">
+                            <div class="avatar-text avatar-md bg-primary text-white me-0">
+                                <i class="feather-user"></i>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end nxl-h-dropdown nxl-user-dropdown">
+                            <div class="dropdown-header">
+                                <div class="d-flex align-items-center">
+                                    <div>
+                                        <h6 class="text-dark mb-0">Administrator</h6>
+                                        <span class="fs-12 fw-medium text-muted">Wardrobe Rescue</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a asp-page="/Index" class="dropdown-item">
+                                <i class="feather-globe"></i>
+                                <span>View Store</span>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a asp-page="/Account/Logout" class="dropdown-item">
+                                <i class="feather-log-out"></i>
+                                <span>Sign Out</span>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="nxl-container">
+        <div class="nxl-content">
+
+            <div class="page-header">
+                <div class="page-header-left d-flex align-items-center">
+                    <div class="page-header-title">
+                        <h5 class="m-b-10">@ViewData["Title"]</h5>
+                    </div>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-page="/Admin/Dashboard">Admin</a>
+                        </li>
+                        <li class="breadcrumb-item">@ViewData["Title"]</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="main-content">
+                @RenderBody()
+            </div>
+
+        </div>
+
+        <footer class="footer">
+            <p class="fs-11 text-muted fw-medium text-uppercase mb-0 copyright">
+                <span>Copyright &copy; @DateTime.Now.Year Wardrobe Rescue</span>
+            </p>
+            <p class="fs-11 text-muted mb-0">Admin Portal</p>
+        </footer>
+    </main>
+
+    <script src="~/admin/assets/vendors/js/vendors.min.js"></script>
+    <script src="~/admin/assets/js/common-init.min.js"></script>
+    <script src="~/admin/assets/js/theme-customizer-init.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const navLinks = document.querySelectorAll('.nxl-navigation .nxl-link');
+            navLinks.forEach(function (link) {
+                link.addEventListener('click', function (e) {
+                    const href = this.getAttribute('href');
+                    if (href && href !== 'javascript:void(0);' && href !== '#') {
+                        window.location.href = href;
+                    }
+                });
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

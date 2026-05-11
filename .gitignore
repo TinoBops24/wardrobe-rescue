@@ -1,0 +1,45 @@
+﻿# .NET and ASP.NET Core
+*.user
+*.suo
+.vs/
+bin/
+obj/
+out/
+publish/
+*.nupkg
+Debug/
+Release/
+Log/
+Logs/
+
+# Visual Studio
+*.rsuser
+*.csproj.user
+*.sln.docstates
+
+# NuGet
+packages/
+*.nuspec
+
+# Secrets and credentials
+appsettings.json
+appsettings.Secrets.json
+appsettings.Local.json
+appsettings.Production.json
+firebase-credentials.json
+firebase-adminsdk*.json
+serviceAccountKey.json
+google-services.json
+appsettings.Development.json
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp

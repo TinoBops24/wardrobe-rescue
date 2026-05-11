@@ -1,0 +1,176 @@
+﻿@page
+@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.Account.WishlistModel
+@{
+    ViewData["Title"] = "My Wishlist";
+}
+
+<div role="main" class="main shop py-4">
+    <div class="container">
+
+        @* ── Breadcrumb ── *@
+        <ul class="breadcrumb breadcrumb-style-2 mb-4">
+            <li class="breadcrumb-item">
+                <a asp-page="/Index">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-page="/Account/Index">My Account</a>
+            </li>
+            <li class="breadcrumb-item active">Wishlist</li>
+        </ul>
+
+        @* ── Alerts ── *@
+        @if (TempData["WishlistSuccess"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["WishlistSuccess"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["WishlistError"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>@TempData["WishlistError"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @* ── Page heading ── *@
+        <h2 class="font-weight-bold mb-1">My Wishlist</h2>
+        @if (!string.IsNullOrEmpty(Model.CustomerName))
+        {
+            <p class="text-muted mb-4">@Model.CustomerName's saved items</p>
+        }
+
+        @* ── Empty state ── *@
+        @if (!Model.WishlistProducts.Any())
+        {
+            <div class="text-center py-5 my-5">
+                <i class="far fa-heart text-muted mb-4" style="font-size:64px;opacity:0.25;"></i>
+                <h3 class="font-weight-bold text-color-dark mb-3">Your wishlist is empty</h3>
+                <p class="text-muted mb-4">
+                    Save items you love and come back to them anytime.
+                </p>
+                <a asp-page="/Products/Index" class="btn btn-dark btn-px-5 btn-py-3">
+                    Browse Products
+                </a>
+            </div>
+        }
+        else
+        {
+            <table class="shop-table wishlist-table w-100">
+                <thead>
+                    <tr>
+                        <th class="thumbnail-col" style="width:110px;"></th>
+                        <th style="text-align:left; padding: 12px 8px;">PRODUCT</th>
+                        <th style="padding: 12px 8px;">PRICE</th>
+                        <th style="padding: 12px 8px;">STOCK STATUS</th>
+                        <th style="padding: 12px 8px;">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var product in Model.WishlistProducts)
+                    {
+                        <tr style="border-top: 1px solid #e9ecf0;">
+
+                            @* Thumbnail with X overlay — matches Porto exactly *@
+                            <td style="padding: 16px 8px; position: relative; width: 110px;">
+                                <div style="position: relative; display: inline-block;">
+                                    <form method="post" asp-page-handler="Remove" style="display:contents;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="productId" value="@product.Id" />
+                                        <button type="submit"
+                                                style="position:absolute; top:-8px; left:-8px; z-index:1;
+                                                               width:22px; height:22px; border-radius:50%;
+                                                               background:#fff; border:1px solid #ccc;
+                                                               display:flex; align-items:center; justify-content:center;
+                                                               cursor:pointer; padding:0; font-size:10px; color:#333;">
+                                            ×
+                                        </button>
+                                    </form>
+                                    <a asp-page="/Products/Details" asp-route-id="@product.Id">
+                                        <img src="@(string.IsNullOrEmpty(product.ImageUrl) ? "/porto/img/products/product-grey-1.jpg" : product.ImageUrl)"
+                                             alt="@product.Name"
+                                             style="width:90px; height:90px; object-fit:contain; background:#f8f8f8; border:1px solid #eee; border-radius:4px;"
+                                             onerror="this.src='/porto/img/products/product-grey-1.jpg'">
+                                    </a>
+                                </div>
+                            </td>
+
+                            @* Product name *@
+                            <td style="padding: 16px 8px; vertical-align: middle;">
+                                <a asp-page="/Products/Details"
+                                   asp-route-id="@product.Id"
+                                   class="text-color-dark text-color-hover-primary font-weight-semibold text-decoration-none">
+                                    @product.Name
+                                </a>
+                            </td>
+
+                            @* Price *@
+                            <td style="padding: 16px 8px; vertical-align: middle;">
+                                @if (product.DiscountPrice.HasValue)
+                                {
+                                    <span class="text-color-dark font-weight-bold">R @product.DiscountPrice.Value.ToString("N0")</span>
+                                    <br>
+                                    <del class="text-muted text-2">R @product.Price.ToString("N0")</del>
+                                }
+                                else
+                                {
+                                    <span class="text-color-dark font-weight-bold">R @product.Price.ToString("N0")</span>
+                                }
+                            </td>
+
+                            @* Stock status *@
+                            <td style="padding: 16px 8px; vertical-align: middle;">
+                                @if (product.StockLevel > 0)
+                                {
+                                    <span class="text-color-dark font-weight-bold">In stock</span>
+                                }
+                                else
+                                {
+                                    <span class="text-danger font-weight-bold">Out of stock</span>
+                                }
+                            </td>
+
+                            @* Actions — Quick View + Add to Cart, matching Porto layout *@
+                            <td style="padding: 16px 8px; vertical-align: middle; white-space: nowrap;">
+                                <a asp-page="/Products/Details"
+                                   asp-route-id="@product.Id"
+                                   class="btn btn-outline btn-outline-2 font-weight-semibold text-uppercase text-2 me-2"
+                                   style="border-color:#ccc; color:#333; padding: 8px 16px;">
+                                    Quick View
+                                </a>
+
+                                <form method="post" asp-page-handler="AddToCart" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productId" value="@product.Id" />
+                                    <button type="submit"
+                                            class="btn btn-dark font-weight-semibold text-uppercase text-2"
+                                            style="padding: 8px 16px;"
+                                            @(product.StockLevel == 0 ? "disabled" : "")>
+                                        @(product.Sizes.Any() ? "ADD TO CART" : "ADD TO CART")
+                                    </button>
+                                </form>
+                            </td>
+
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @* ── Footer actions ── *@
+            <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                <a asp-page="/Products/Index"
+                   class="btn btn-outline btn-outline-2 font-weight-semibold"
+                   style="border-color:#ccc; color:#333; padding: 10px 24px;">
+                    ← Continue Shopping
+                </a>
+                <a asp-page="/Cart/Index"
+                   class="btn btn-dark font-weight-semibold"
+                   style="padding: 10px 24px;">
+                     View Cart
+                </a>
+            </div>
+        }
+
+    </div>
+</div>

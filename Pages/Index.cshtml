@@ -1,0 +1,545 @@
+﻿@page
+@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<!-- ── HERO ── -->
+<section class="section section-angled overflow-visible section-angled-reverse border-top-0 hero mb-0">
+    <div class="section-angled-layer-bottom bg-light"></div>
+    <div class="section-angled-content">
+
+        <div class="container py-2 py-lg-3 p-relative z-index-1">
+            <div class="row py-2 align-items-center">
+
+                <!-- Left Copy -->
+                <div class="text-center text-lg-start col-lg-6 py-3">
+
+                    <div class="overflow-hidden mb-2">
+                        <div class="appear-animation" data-appear-animation="maskUp" data-appear-animation-delay="0">
+                            <span class="bg-primary text-light d-inline-block text-3-5 rounded-pill px-4 py-1 font-weight-medium me-2">AI-Powered</span>
+                            <p class="p-0 d-inline-block text-4 text-color-dark font-weight-medium">Fashion Intelligence</p>
+                        </div>
+                    </div>
+
+                    <div class="perspective-500">
+                        <h2 class="custom-hero-font-1 appear-animation ls-0" data-appear-animation="textEntrance" data-appear-animation-delay="0">
+                            Dress for <strong class="custom-decoration-1 d-inline-block">
+                                <mark class="bg-transparent d-inline-block p-0 mark mark-color mark-color-primary">Every</mark>
+                            </strong><br>
+                            <mark class="bg-transparent d-inline-block p-0 mark mark-color mark-color-primary">Occasion</mark> <strong>Perfectly</strong>
+                        </h2>
+                    </div>
+
+                    <p class="text-4 text-color-grey mb-4 appear-animation pe-lg-5"
+                       data-appear-animation="fadeInUpShorter" data-appear-animation-delay="300">
+                        Wardrobe Rescue uses AI to curate complete, scored outfit bundles - tailored to your occasion, style, and body. Never wonder what to wear again.
+                    </p>
+
+                    <div class="d-flex mb-5 justify-content-center justify-content-lg-start gap-4 appear-animation"
+                         data-appear-animation="fadeInUpShorter" data-appear-animation-delay="400">
+                        <div class="feature-box align-items-center">
+                            <div class="feature-box-icon box-shadow-2 bg-light border custom-border-color-1 rounded-circle p-2">
+                                <i class="fa-solid fa-check-double text-primary"></i>
+                            </div>
+                            <div class="feature-box-info line-height-2 ps-2">
+                                <span class="text-3-5 font-weight-medium text-dark negative-ls-05">AI Outfit Scoring</span>
+                            </div>
+                        </div>
+                        <div class="feature-box align-items-center">
+                            <div class="feature-box-icon box-shadow-2 bg-light border custom-border-color-1 rounded-circle p-2">
+                                <i class="fa-solid fa-check-double text-primary"></i>
+                            </div>
+                            <div class="feature-box-info line-height-2 ps-2">
+                                <span class="text-3-5 font-weight-medium text-dark negative-ls-05">Curated Bundles</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="appear-animation" data-appear-animation="fadeInUpShorter" data-appear-animation-delay="500">
+                        <a asp-page="/Assistant/Index"
+                           class="btn btn-modern btn-effect-4 btn-rounded btn-primary text-transform-none text-3 font-weight-medium mt-2 mb-2 me-2">
+                            Try AI Stylist <i class="fas fa-arrow-right rotate-l-45 ms-2"></i>
+                        </a>
+                        <a asp-page="/Products/Index"
+                           class="btn btn-modern btn-effect-4 btn-rounded btn-dark text-transform-none text-3 font-weight-medium mt-2 mb-2">
+                            Shop Now <i class="fas fa-arrow-right rotate-l-45 ms-2"></i>
+                        </a>
+                    </div>
+
+                </div>
+
+                <!-- ──Floating Product Grid ── -->
+                <div class="col-lg-6 mt-5 mt-lg-0 custom-pos-2">
+                    @if (Model.FeaturedProducts != null && Model.FeaturedProducts.Any())
+                    {
+                        var fp = Model.FeaturedProducts.Take(6).ToList();
+
+                        <div class="row align-items-center">
+
+                            <!-- Column 1 -->
+                            <div class="col-4">
+                                @if (fp.Count > 0)
+                                {
+                                    var p = fp[0];
+                                    <div class="p-relative z-index-2 appear-animation" data-appear-animation="fadeInUpShorter" data-appear-animation-delay="0">
+                                        <div data-plugin-float-element data-plugin-options="{'minWindowWidth': 0, 'startPos': 'top', 'speed': 1.5, 'transition': true, 'transitionDuration': 1000}">
+                                            <div class="custom-box-1 p-relative d-block bg-light custom-border-radius-1 border-0 p-2 text-center w-100">
+                                                <a asp-page="/Products/Details" asp-route-id="@p.Id" class="d-block text-decoration-none">
+                                                    <div style="height:155px;overflow:hidden;background:#fff;border-radius:8px;">
+                                                        <img src="@p.ImageUrl" alt="@p.Name" style="width:100%;height:100%;object-fit:contain;padding:8px;">
+                                                    </div>
+                                                    <div class="p-2 text-start">
+                                                        <small class="text-color-primary text-uppercase font-weight-semibold" style="font-size:0.62rem;">@p.Category</small>
+                                                        <p class="text-color-dark font-weight-medium mb-0" style="font-size:0.72rem;line-height:1.3;">@p.Name</p>
+                                                        <strong class="text-color-dark" style="font-size:0.78rem;">R @(p.Price.ToString("N0"))</strong>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                @if (fp.Count > 3)
+                                {
+                                    var p = fp[3];
+                                    <div class="p-relative z-index-1 mt-3 appear-animation" data-appear-animation="fadeInUpShorter" data-appear-animation-delay="150">
+                                        <div data-plugin-float-element data-plugin-options="{'minWindowWidth': 0, 'startPos': 'bottom', 'speed': 4.0, 'transition': true, 'transitionDuration': 1000}">
+                                            <div class="custom-box-1 p-relative d-block bg-light custom-border-radius-1 border-0 p-2 text-center w-100">
+                                                <a asp-page="/Products/Details" asp-route-id="@p.Id" class="d-block text-decoration-none">
+                                                    <div style="height:120px;overflow:hidden;background:#fff;border-radius:8px;">
+                                                        <img src="@p.ImageUrl" alt="@p.Name" style="width:100%;height:100%;object-fit:contain;padding:8px;">
+                                                    </div>
+                                                    <div class="p-2 text-start">
+                                                        <small class="text-color-primary text-uppercase font-weight-semibold" style="font-size:0.62rem;">@p.Category</small>
+                                                        <p class="text-color-dark font-weight-medium mb-0" style="font-size:0.72rem;line-height:1.3;">@p.Name</p>
+                                                        <strong class="text-color-dark" style="font-size:0.78rem;">R @(p.Price.ToString("N0"))</strong>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Column 2 -->
+                            <div class="col-4" style="margin-top:-50px;">
+                                @if (fp.Count > 1)
+                                {
+                                    var p = fp[1];
+                                    <div class="p-relative z-index-1 appear-animation" data-appear-animation="fadeInUpShorter" data-appear-animation-delay="200">
+                                        <div data-plugin-float-element data-plugin-options="{'minWindowWidth': 0, 'startPos': 'top', 'speed': 6.0, 'transition': true, 'transitionDuration': 1000}">
+                                            <div class="custom-box-1 p-relative d-block bg-light custom-border-radius-1 border-0 p-2 text-center w-100">
+                                                <a asp-page="/Products/Details" asp-route-id="@p.Id" class="d-block text-decoration-none">
+                                                    <div style="height:170px;overflow:hidden;background:#fff;border-radius:8px;">
+                                                        <img src="@p.ImageUrl" alt="@p.Name" style="width:100%;height:100%;object-fit:contain;padding:8px;">
+                                                    </div>
+                                                    <div class="p-2 text-start">
+                                                        <small class="text-color-primary text-uppercase font-weight-semibold" style="font-size:0.62rem;">@p.Category</small>
+                                                        <p class="text-color-dark font-weight-medium mb-0" style="font-size:0.72rem;line-height:1.3;">@p.Name</p>
+                                                        <strong class="text-color-dark" style="font-size:0.78rem;">R @(p.Price.ToString("N0"))</strong>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                @if (fp.Count > 4)
+                                {
+                                    var p = fp[4];
+                                    <div class="p-relative z-index-1 mt-3 appear-animation" data-appear-animation="fadeInUpShorter" data-appear-animation-delay="350">
+                                        <div data-plugin-float-element data-plugin-options="{'minWindowWidth': 0, 'startPos': 'bottom', 'speed': 5.0, 'transition': true, 'transitionDuration': 1000}">
+                                            <div class="custom-box-1 p-relative d-block bg-light custom-border-radius-1 border-0 p-2 text-center w-100">
+                                                <a asp-page="/Products/Details" asp-route-id="@p.Id" class="d-block text-decoration-none">
+                                                    <div style="height:120px;overflow:hidden;background:#fff;border-radius:8px;">
+                                                        <img src="@p.ImageUrl" alt="@p.Name" style="width:100%;height:100%;object-fit:contain;padding:8px;">
+                                                    </div>
+                                                    <div class="p-2 text-start">
+                                                        <small class="text-color-primary text-uppercase font-weight-semibold" style="font-size:0.62rem;">@p.Category</small>
+                                                        <p class="text-color-dark font-weight-medium mb-0" style="font-size:0.72rem;line-height:1.3;">@p.Name</p>
+                                                        <strong class="text-color-dark" style="font-size:0.78rem;">R @(p.Price.ToString("N0"))</strong>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Column 3 -->
+                            <div class="col-4">
+                                @if (fp.Count > 2)
+                                {
+                                    var p = fp[2];
+                                    <div class="p-relative z-index-2 appear-animation" data-appear-animation="fadeInUpShorter" data-appear-animation-delay="400">
+                                        <div data-plugin-float-element data-plugin-options="{'minWindowWidth': 0, 'startPos': 'bottom', 'speed': 3.0, 'transition': true, 'transitionDuration': 1000}">
+                                            <div class="custom-box-1 p-relative d-block bg-light custom-border-radius-1 border-0 p-2 text-center w-100">
+                                                <a asp-page="/Products/Details" asp-route-id="@p.Id" class="d-block text-decoration-none">
+                                                    <div style="height:155px;overflow:hidden;background:#fff;border-radius:8px;">
+                                                        <img src="@p.ImageUrl" alt="@p.Name" style="width:100%;height:100%;object-fit:contain;padding:8px;">
+                                                    </div>
+                                                    <div class="p-2 text-start">
+                                                        <small class="text-color-primary text-uppercase font-weight-semibold" style="font-size:0.62rem;">@p.Category</small>
+                                                        <p class="text-color-dark font-weight-medium mb-0" style="font-size:0.72rem;line-height:1.3;">@p.Name</p>
+                                                        <strong class="text-color-dark" style="font-size:0.78rem;">R @(p.Price.ToString("N0"))</strong>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                @if (fp.Count > 5)
+                                {
+                                    var p = fp[5];
+                                    <div class="p-relative z-index-1 mt-3 appear-animation" data-appear-animation="fadeInUpShorter" data-appear-animation-delay="500">
+                                        <div data-plugin-float-element data-plugin-options="{'minWindowWidth': 0, 'startPos': 'bottom', 'speed': 5.0, 'transition': true, 'transitionDuration': 1000}">
+                                            <div class="custom-box-1 p-relative d-block bg-light custom-border-radius-1 border-0 p-2 text-center w-100">
+                                                <a asp-page="/Products/Details" asp-route-id="@p.Id" class="d-block text-decoration-none">
+                                                    <div style="height:120px;overflow:hidden;background:#fff;border-radius:8px;">
+                                                        <img src="@p.ImageUrl" alt="@p.Name" style="width:100%;height:100%;object-fit:contain;padding:8px;">
+                                                    </div>
+                                                    <div class="p-2 text-start">
+                                                        <small class="text-color-primary text-uppercase font-weight-semibold" style="font-size:0.62rem;">@p.Category</small>
+                                                        <p class="text-color-dark font-weight-medium mb-0" style="font-size:0.72rem;line-height:1.3;">@p.Name</p>
+                                                        <strong class="text-color-dark" style="font-size:0.78rem;">R @(p.Price.ToString("N0"))</strong>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="custom-box-1 bg-light custom-border-radius-1 p-5 text-center appear-animation"
+                             data-appear-animation="fadeInUpShorter">
+                            <i class="fas fa-tshirt fa-5x text-muted mb-3 d-block"></i>
+                            <p class="text-muted font-weight-medium">Your curated looks appear here</p>
+                        </div>
+                    }
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── MARQUEE TICKER 1 ── -->
+<div class="custom-pos-1">
+    <div class="marquee py-3 custom-bg-gradient-1" data-duration="70000" data-gap="10" data-duplicated="true" data-startVisible="true">
+        <p class="text-5-5 text-dark font-weight-medium m-0 d-block py-3 ws-nowrap custom-font-secondary">
+            <span data-clone-element="5">
+                Interviews &nbsp;•&nbsp; Date Night &nbsp;•&nbsp; Smart Casual &nbsp;•&nbsp; Formal Events &nbsp;•&nbsp; Weekend Brunch &nbsp;•&nbsp; Business Meetings &nbsp;•&nbsp; Casual Friday &nbsp;•&nbsp;
+            </span>
+        </p>
+    </div>
+</div>
+
+<!-- ── HOW IT WORKS ── -->
+<div class="custom-bg-color-1">
+    <div class="container py-5">
+        <div class="row text-center mb-4 pt-5">
+            <div class="col">
+                <div class="overflow-hidden">
+                    <div class="appear-animation" data-appear-animation="maskUp">
+                        <span class="bg-primary text-light d-inline-block text-3-5 rounded-pill px-4 py-1 font-weight-medium">
+                            How It Works
+                        </span>
+                    </div>
+                </div>
+                <h2 class="custom-font-1 mt-3 mb-1 ls-0">Three steps to your <strong>perfect look</strong></h2>
+                <p class="text-color-grey text-4">No more wardrobe paralysis. Ever.</p>
+            </div>
+        </div>
+        <div class="row pb-5">
+            <div class="col-lg-4 mb-4 mb-lg-0">
+                <div class="custom-box-1 bg-light custom-border-radius-1 p-4 h-100 appear-animation"
+                     data-appear-animation="fadeInUpShorter" data-appear-animation-delay="0">
+                    <div class="mb-3">
+                        <span class="bg-primary text-light d-inline-flex align-items-center justify-content-center rounded-circle"
+                              style="width:56px;height:56px;font-size:1.4rem;">
+                            <i class="fas fa-magic"></i>
+                        </span>
+                    </div>
+                    <h4 class="font-weight-bold text-4 mb-2 ls-0">1. Choose Your Occasion</h4>
+                    <p class="text-color-grey mb-0">Tell our AI Stylist where you're going - interview, date, casual outing - and it gets to work immediately building your look.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4 mb-lg-0">
+                <div class="custom-box-1 bg-dark custom-border-radius-1 p-4 h-100 appear-animation"
+                     data-appear-animation="fadeInUpShorter" data-appear-animation-delay="200">
+                    <div class="mb-3">
+                        <span class="bg-primary text-light d-inline-flex align-items-center justify-content-center rounded-circle"
+                              style="width:56px;height:56px;font-size:1.4rem;">
+                            <i class="fas fa-brain"></i>
+                        </span>
+                    </div>
+                    <h4 class="font-weight-bold text-4 mb-2 ls-0 text-light">2. AI Curates Your Bundle</h4>
+                    <p class="text-grey mb-0">Receive scored outfit bundles with full explanations - formality, colour harmony, occasion fit. You always know <em>why</em> it works.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="custom-box-1 bg-light custom-border-radius-1 p-4 h-100 appear-animation"
+                     data-appear-animation="fadeInUpShorter" data-appear-animation-delay="400">
+                    <div class="mb-3">
+                        <span class="bg-dark text-light d-inline-flex align-items-center justify-content-center rounded-circle"
+                              style="width:56px;height:56px;font-size:1.4rem;">
+                            <i class="fas fa-shopping-bag"></i>
+                        </span>
+                    </div>
+                    <h4 class="font-weight-bold text-4 mb-2 ls-0">3. Shop the Complete Look</h4>
+                    <p class="text-color-grey mb-0">Add entire curated outfits to your cart in one click. Every item selected to work together - perfectly coordinated, every time.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── GSAP SCALE SECTION — MISSION STATEMENT ── -->
+<div class="custom-bg-color-1">
+    <div class="gsap-section-scale custom-section-1">
+        <div class="custom-section-1-box bg-dark custom-border-radius-1 w-100 h-100 p-relative">
+            <div class="container py-5 z-index-1 p-relative">
+                <div class="row justify-content-center text-center text-xl-start align-items-center py-4">
+                    <div class="col-xl-8">
+                        <div class="overflow-hidden">
+                            <div class="appear-animation" data-appear-animation="maskUp">
+                                <h3 class="custom-font-1 text-light mb-0">
+                                    Empowering <span class="text-color-primary">your wardrobe</span> with AI that understands
+                                    <span class="custom-word-highlight-1 d-inline-block p-relative text-color-primary">
+                                        <span class="p-relative z-index-2">style.</span>
+                                    </span>
+                                </h3>
+                            </div>
+                        </div>
+                        <div class="appear-animation mt-4" data-appear-animation="fadeInUpShorter" data-appear-animation-delay="500">
+                            <a asp-page="/Assistant/Index"
+                               class="btn btn-modern btn-effect-4 btn-rounded btn-primary text-transform-none text-3 font-weight-medium mt-2 mb-2">
+                                Try AI Stylist <i class="fas fa-arrow-right rotate-l-45 ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 pt-5 pt-xl-0 text-center">
+                        <div class="appear-animation" data-appear-animation="fadeIn" data-appear-animation-delay="800">
+                            <p class="text-4 text-grey mb-0">
+                                Unlock your personal style with AI-curated bundles that connect occasion, fit, and colour into one confident look.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── IMPACT NUMBERS (Dark) ── -->
+<div class="bg-dark pt-5">
+    <div class="container py-4 py-lg-5">
+        <div class="row text-center text-lg-start py-lg-5">
+            <div class="col pb-4 pt-4 mt-5">
+                <div class="overflow-hidden mb-4">
+                    <div class="appear-animation" data-appear-animation="maskUp">
+                        <span class="text-light d-inline-block text-3-5 rounded-pill px-4 py-1 font-weight-medium border border-secondary">
+                            Why Wardrobe Rescue
+                        </span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4 mb-5 mb-lg-0">
+                        <div class="text-lg-start">
+                            <div class="appear-animation" data-appear-animation="fadeInUpShorter" data-appear-animation-delay="0">
+                                <strong class="custom-highlight-text-1" data-to="95" data-append="%" data-plugin-counter data-plugin-options="{'speed': 2000}">0</strong>
+                            </div>
+                        </div>
+                        <h3 class="text-light mb-3 text-8 ls-0 line-height-1">Outfit Match Rate</h3>
+                        <p class="text-3-5 text-grey mb-4 pe-4">Our AI scoring engine matches outfit components across formality, colour, and occasion with industry-leading precision.</p>
+                    </div>
+                    <div class="col-lg-4 mb-5 mb-lg-0">
+                        <div class="text-lg-start">
+                            <div class="appear-animation" data-appear-animation="fadeInUpShorter" data-appear-animation-delay="200">
+                                <strong class="custom-highlight-text-1" data-to="3" data-append="x" data-plugin-counter data-plugin-options="{'speed': 2000}">0</strong>
+                            </div>
+                        </div>
+                        <h3 class="text-light mb-3 text-8 ls-0 line-height-1">Faster Outfit Selection</h3>
+                        <p class="text-3-5 text-grey mb-4 pe-4">Shoppers using AI bundle recommendations find their complete look three times faster than browsing individually.</p>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="text-lg-start">
+                            <div class="appear-animation" data-appear-animation="fadeInUpShorter" data-appear-animation-delay="400">
+                                <strong class="custom-highlight-text-1" data-to="100" data-append="+" data-plugin-counter data-plugin-options="{'speed': 2000}">0</strong>
+                            </div>
+                        </div>
+                        <h3 class="text-light mb-3 text-8 ls-0 line-height-1">Curated Items</h3>
+                        <p class="text-3-5 text-grey mb-4 pe-4">Every product assessed for formality, colour profile, and occasion suitability before being listed in the catalogue.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── FEATURED PRODUCTS ── -->
+@if (Model.FeaturedProducts != null && Model.FeaturedProducts.Any())
+{
+    <div class="custom-bg-color-1">
+        <div class="container py-5">
+            <div class="row text-center mb-5 pt-4">
+                <div class="col">
+                    <div class="overflow-hidden">
+                        <div class="appear-animation" data-appear-animation="maskUp">
+                            <span class="bg-dark text-light d-inline-block text-3-5 rounded-pill px-4 py-1 font-weight-medium">New Arrivals</span>
+                        </div>
+                    </div>
+                    <h2 class="custom-font-1 mt-3 mb-1 ls-0">Featured <strong>Products</strong></h2>
+                    <p class="text-color-grey text-4">Individually selected for style and versatility</p>
+                </div>
+            </div>
+            <div class="row products pb-5">
+                @foreach (var product in Model.FeaturedProducts.Take(4))
+                {
+                    var idx = Model.FeaturedProducts.Take(4).ToList().IndexOf(product);
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        <div class="product mb-0 appear-animation" data-appear-animation="fadeInUpShorter" data-appear-animation-delay="@(idx * 150)">
+                            <div class="product-thumb-info border-0 mb-3">
+                                @if (product.IsNew)
+                                {
+                                    <div class="product-thumb-info-badges-wrapper">
+                                        <span class="badge badge-ecommerce text-bg-success">NEW</span>
+                                    </div>
+                                }
+                                @if (product.DiscountPercentage > 0)
+                                {
+                                    <div class="product-thumb-info-badges-wrapper">
+                                        <span class="badge badge-ecommerce text-bg-danger">@(product.DiscountPercentage)% OFF</span>
+                                    </div>
+                                }
+                                <div class="addtocart-btn-wrapper">
+                                    <a asp-page="/Products/Details" asp-route-id="@product.Id" class="text-decoration-none addtocart-btn" title="View Product">
+                                        <i class="icons icon-bag"></i>
+                                    </a>
+                                </div>
+                                <a asp-page="/Products/Details" asp-route-id="@product.Id">
+                                    <div class="product-thumb-info-image bg-white border custom-border-radius-1">
+                                        <img alt="@product.Name" class="img-fluid" src="@product.ImageUrl"
+                                             style="height:280px;object-fit:contain;width:100%;padding:12px;">
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <a asp-page="/Products/Index" asp-route-SelectedCategory="@product.Category"
+                                       class="d-block text-uppercase text-decoration-none text-color-default text-color-hover-primary line-height-1 text-0 mb-1">
+                                        @product.Category
+                                    </a>
+                                    <h3 class="text-3-5 font-weight-medium font-alternative text-transform-none line-height-3 mb-0">
+                                        <a asp-page="/Products/Details" asp-route-id="@product.Id" class="text-color-dark text-color-hover-primary">@product.Name</a>
+                                    </h3>
+                                </div>
+                                <a href="#" class="text-decoration-none text-color-default text-color-hover-dark text-4">
+                                    <i class="far fa-heart"></i>
+                                </a>
+                            </div>
+                            <div title="Rated @product.Rating out of 5">
+                                <input type="text" class="d-none" value="@product.Rating"
+                                       data-plugin-star-rating data-plugin-options="{'displayOnly': true, 'color': 'default', 'size':'xs'}">
+                            </div>
+                            <p class="price text-5 mb-3">
+                                @if (product.DiscountPrice.HasValue)
+                                {
+                                    <span class="sale text-color-dark font-weight-semi-bold">R @(product.DiscountPrice.Value.ToString("N0"))</span>
+                                    <span class="amount text-decoration-line-through text-muted ms-1">R @(product.Price.ToString("N0"))</span>
+                                }
+                                else
+                                {
+                                    <span class="sale text-color-dark font-weight-semi-bold">R @(product.Price.ToString("N0"))</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="row pb-5">
+                <div class="col text-center">
+                    <a asp-page="/Products/Index" class="btn btn-modern btn-effect-4 btn-rounded btn-dark text-transform-none text-3 font-weight-medium">
+                        View All Products <i class="fas fa-arrow-right rotate-l-45 ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ── TESTIMONIALS ── -->
+<div class="custom-bg-color-1">
+    <div class="gsap-section-scale custom-section-1">
+        <div class="custom-section-1-box bg-light custom-border-radius-1 w-100 h-100 p-relative custom-el-2">
+            <div class="container py-5 z-index-1 p-relative">
+                <div class="row text-center text-lg-start justify-content-between py-5 align-items-center">
+                    <div class="col-lg-4 py-4">
+                        <div class="appear-animation" data-appear-animation="fadeIn" data-appear-animation-delay="0">
+                            <span class="bg-primary text-light d-inline-block text-3 rounded-pill px-4 py-1 font-weight-medium me-2">
+                                <i class="fa-solid fa-star me-1"></i><i class="fa-solid fa-star me-1"></i><i class="fa-solid fa-star me-1"></i><i class="fa-solid fa-star me-1"></i><i class="fa-solid fa-star"></i>
+                            </span>
+                            <p class="p-0 d-inline-block text-3-5 ms-1">Customer Reviews</p>
+                        </div>
+                        <div class="appear-animation" data-appear-animation="fadeIn" data-appear-animation-delay="300">
+                            <h3 class="custom-font-2 mb-0 mt-3">
+                                See what our customers are
+                                <span class="custom-word-highlight-1 d-inline-block p-relative text-color-primary">
+                                    <span class="p-relative z-index-2">saying!</span>
+                                </span>
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="col-lg-7 py-4">
+                        <div class="appear-animation" data-appear-animation="fadeIn" data-appear-animation-delay="400">
+                            <p class="text-dark text-4-5 line-height-9 mb-4">
+                                "The AI Stylist recommended a complete outfit for my job interview and I got the job! The explainable scoring gave me real confidence in what I was wearing."
+                            </p>
+                            <strong class="text-color-primary text-uppercase font-weight-medium text-2">Amahle K. — Cape Town</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MARQUEE TICKER 2 ── -->
+<div class="custom-pos-13">
+    <div class="marquee py-3 custom-bg-gradient-1" data-duration="80000" data-gap="10" data-duplicated="true" data-startVisible="true">
+        <p class="text-5-5 text-dark font-weight-medium m-0 d-block py-3 ws-nowrap custom-font-secondary">
+            <span data-clone-element="5">
+                Style &nbsp;•&nbsp; Confidence &nbsp;•&nbsp; AI Curation &nbsp;•&nbsp; Outfit Scoring &nbsp;•&nbsp; Bundle Shopping &nbsp;•&nbsp; Fashion Intelligence &nbsp;•&nbsp; Wardrobe Rescue &nbsp;•&nbsp;
+            </span>
+        </p>
+    </div>
+</div>
+
+<!-- ── CTA (Dark) ── -->
+<div class="bg-dark py-5">
+    <div class="container py-5">
+        <div class="row align-items-center justify-content-between">
+            <div class="col-lg-7 mb-4 mb-lg-0 text-center text-lg-start">
+                <div class="appear-animation" data-appear-animation="fadeInUpShorter">
+                    <h2 class="custom-font-1 text-light mb-2">Ready to <strong>Rescue</strong> Your Wardrobe?</h2>
+                    <p class="text-grey text-4 mb-0">Let AI do the styling - you just show up dressed perfectly for every occasion.</p>
+                </div>
+            </div>
+            <div class="col-lg-auto text-center">
+                <div class="appear-animation" data-appear-animation="fadeInUpShorter" data-appear-animation-delay="300">
+                    <a asp-page="/Assistant/Index"
+                       class="btn btn-modern btn-effect-4 btn-rounded btn-primary text-transform-none text-3 font-weight-medium mb-2 me-2">
+                        Try AI Stylist <i class="fas fa-arrow-right rotate-l-45 ms-2"></i>
+                    </a>
+                    <a asp-page="/Products/Index"
+                       class="btn btn-modern btn-effect-4 btn-rounded btn-light text-dark text-transform-none text-3 font-weight-medium mb-2">
+                        Browse Products <i class="fas fa-arrow-right rotate-l-45 ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

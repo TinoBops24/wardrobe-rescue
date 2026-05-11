@@ -1,0 +1,278 @@
+﻿@page
+@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.Checkout.IndexModel
+@{
+    ViewData["Title"] = "Checkout";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<div role="main" class="main shop pb-4">
+    <div class="container">
+
+        @* Breadcrumb Progress *@
+        <div class="row">
+            <div class="col">
+                <ul class="breadcrumb breadcrumb-dividers-no-opacity font-weight-bold text-6 justify-content-center my-5">
+                    <li class="text-transform-none me-2">
+                        <a href="/Cart" class="text-decoration-none text-color-dark text-color-hover-primary">Shopping Cart</a>
+                    </li>
+                    <li class="text-transform-none text-color-dark me-2">
+                        <a href="/Checkout" class="text-decoration-none text-color-primary">Checkout</a>
+                    </li>
+                    <li class="text-transform-none text-color-grey-lighten">
+                        <a href="/Checkout/Success" class="text-decoration-none text-color-grey-lighten text-color-hover-primary">Order Complete</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        @* Validation Summary *@
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="alert alert-danger border-radius-0 border-0 border-start border-width-4 border-color-danger">
+                        <strong>Please correct the following:</strong>
+                        <ul class="mb-0 mt-1">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li class="text-3">@error.ErrorMessage</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @* Main Form *@
+        <form method="post" asp-page-handler="PlaceOrder" novalidate>
+            @Html.AntiForgeryToken()
+
+            @* Hidden session-sourced fields *@
+            <input type="hidden" asp-for="Email" />
+            <input type="hidden" asp-for="City" />
+            <input type="hidden" asp-for="Province" />
+            <input type="hidden" asp-for="PostalCode" />
+
+            <div class="row">
+
+                @* LEFT: Billing Details *@
+                <div class="col-lg-7 mb-4 mb-lg-0">
+
+                    <h2 class="text-color-dark font-weight-bold text-5-5 mb-4">Billing Details</h2>
+
+                    @* Name *@
+                    <div class="row">
+                        <div class="form-group col-md-6 mb-3">
+                            <label asp-for="FirstName" class="form-label text-color-dark font-weight-semibold text-3">
+                                First Name <span class="text-color-danger">*</span>
+                            </label>
+                            <input asp-for="FirstName" class="form-control h-auto py-2 border-radius-0" placeholder="e.g. Tino" />
+                            <span asp-validation-for="FirstName" class="text-color-danger text-2 mt-1 d-block"></span>
+                        </div>
+                        <div class="form-group col-md-6 mb-3">
+                            <label asp-for="LastName" class="form-label text-color-dark font-weight-semibold text-3">
+                                Last Name <span class="text-color-danger">*</span>
+                            </label>
+                            <input asp-for="LastName" class="form-control h-auto py-2 border-radius-0" placeholder="e.g. Banda" />
+                            <span asp-validation-for="LastName" class="text-color-danger text-2 mt-1 d-block"></span>
+                        </div>
+                    </div>
+
+                    @* Phone *@
+                    <div class="form-group mb-3">
+                        <label asp-for="Phone" class="form-label text-color-dark font-weight-semibold text-3">
+                            Phone Number <span class="text-color-danger">*</span>
+                        </label>
+                        <input asp-for="Phone" type="tel" class="form-control h-auto py-2 border-radius-0"
+                               placeholder="e.g. 071 234 5678" />
+                        <span asp-validation-for="Phone" class="text-color-danger text-2 mt-1 d-block"></span>
+                    </div>
+
+                    @* Address *@
+                    <div class="form-group mb-3">
+                        <label asp-for="Address" class="form-label text-color-dark font-weight-semibold text-3">
+                            Delivery Address <span class="text-color-danger">*</span>
+                        </label>
+                        <input asp-for="Address" class="form-control h-auto py-2 border-radius-0"
+                               placeholder="Street address, suburb, city, province" />
+                        <span asp-validation-for="Address" class="text-color-danger text-2 mt-1 d-block"></span>
+                    </div>
+
+                    @* Confirmation email display *@
+                    @if (!string.IsNullOrEmpty(Model.Email))
+                    {
+                        <div class="card border-radius-0 border-width-3 bg-light mb-3">
+                            <div class="card-body py-3 px-4">
+                                <p class="mb-1 text-color-dark font-weight-semibold text-3">
+                                    <i class="fas fa-user me-2 text-color-primary"></i>Order confirmation will be sent to:
+                                </p>
+                                <p class="mb-0 text-color-grey text-3">@Model.Email</p>
+                            </div>
+                        </div>
+                    }
+
+                    @* Order Notes *@
+                    <div class="form-group mb-3">
+                        <label asp-for="OrderNotes" class="form-label text-color-dark font-weight-semibold text-3">
+                            Order Notes <span class="text-color-grey text-2">(optional)</span>
+                        </label>
+                        <textarea asp-for="OrderNotes" class="form-control h-auto py-2 border-radius-0" rows="3"
+                                  placeholder="Special instructions, size preferences, or delivery notes..."></textarea>
+                    </div>
+
+                </div>
+
+                @* RIGHT: Order Summary *@
+                <div class="col-lg-5 position-relative">
+                    <div class="card border-width-3 border-radius-0 border-color-hover-dark"
+                         data-plugin-sticky
+                         data-plugin-options="{'minWidth': 991, 'containerSelector': '.row', 'padding': {'top': 85}}">
+                        <div class="card-body">
+
+                            <h4 class="font-weight-bold text-uppercase text-4 mb-3 text-color-dark">Your Order</h4>
+
+                            <table class="shop_table cart-totals w-100 mb-3">
+                                <tbody>
+
+                                    <tr>
+                                        <td colspan="2" class="border-top-0 pb-2">
+                                            <strong class="text-color-dark text-3">Product</strong>
+                                        </td>
+                                    </tr>
+
+                                    @foreach (var item in Model.CartItems)
+                                    {
+                                        <tr>
+                                            <td class="py-2">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                                    {
+                                                        <img src="@item.ImageUrl" alt="@item.ProductName" class="rounded"
+                                                             style="width:48px;height:48px;object-fit:cover;flex-shrink:0;" />
+                                                    }
+                                                    <div>
+                                                        <strong class="d-block text-color-dark line-height-1 font-weight-semibold text-3">
+                                                            @item.ProductName
+                                                            <span class="text-color-grey font-weight-normal">&#215;@item.Quantity</span>
+                                                        </strong>
+                                                        @if (!string.IsNullOrEmpty(item.SelectedSize))
+                                                        {
+                                                            <span class="text-1 text-color-grey text-uppercase">Size: @item.SelectedSize</span>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-end align-middle py-2" style="white-space:nowrap;">
+                                                <span class="amount font-weight-medium text-color-grey text-3">
+                                                    R @((item.Price * item.Quantity).ToString("N0"))
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+
+                                    <tr class="cart-subtotal">
+                                        <td class="pt-3">
+                                            <strong class="text-color-dark text-3">Subtotal</strong>
+                                        </td>
+                                        <td class="pt-3 text-end">
+                                            <strong class="text-3">
+                                                <span class="amount">R @Model.CartSubtotal.ToString("N0")</span>
+                                            </strong>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="shipping">
+                                        <td colspan="2" class="py-3">
+                                            <strong class="d-block text-color-dark mb-2 text-3">Shipping</strong>
+                                            <div class="d-flex flex-column gap-1">
+                                                <label class="d-flex align-items-center text-color-grey mb-0 text-3" for="shipping_free">
+                                                    <input id="shipping_free" type="radio" class="me-2"
+                                                           asp-for="ShippingMethod" value="Free Shipping" checked />
+                                                    Free Shipping
+                                                    <span class="badge bg-color-primary text-white text-1 ms-2 px-2 py-1">Nationwide</span>
+                                                </label>
+                                                <label class="d-flex align-items-center text-color-grey mb-0 text-3" for="shipping_express">
+                                                    <input id="shipping_express" type="radio" class="me-2"
+                                                           asp-for="ShippingMethod" value="Express Shipping" />
+                                                    Express Shipping: <strong class="ms-1">R 99.00</strong>
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="total">
+                                        <td class="py-3">
+                                            <strong class="text-color-dark text-4">Total</strong>
+                                        </td>
+                                        <td class="py-3 text-end" id="orderTotal">
+                                            <strong class="text-color-dark">
+                                                <span class="amount text-color-primary text-5">R @Model.CartSubtotal.ToString("N0")</span>
+                                            </strong>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="payment-methods">
+                                        <td colspan="2" class="py-3">
+                                            <strong class="d-block text-color-dark mb-2 text-3">Payment Method</strong>
+                                            <div class="d-flex flex-column gap-1">
+                                                <label class="d-flex align-items-center text-color-grey mb-0 text-3" for="pay_eft">
+                                                    <input id="pay_eft" type="radio" class="me-2" asp-for="PaymentMethod" value="EFT" />
+                                                    <i class="fas fa-university me-2"></i> EFT / Direct Transfer
+                                                </label>
+                                                <label class="d-flex align-items-center text-color-grey mb-0 text-3" for="pay_card">
+                                                    <input id="pay_card" type="radio" class="me-2" asp-for="PaymentMethod" value="Card" />
+                                                    <i class="fas fa-credit-card me-2"></i> Credit / Debit Card
+                                                </label>
+                                                <label class="d-flex align-items-center text-color-grey mb-0 text-3" for="pay_paypal">
+                                                    <input id="pay_paypal" type="radio" class="me-2" asp-for="PaymentMethod" value="PayPal" />
+                                                    <i class="fab fa-paypal me-2"></i> PayPal
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td colspan="2" class="text-2 text-color-grey py-2">
+                                            <i class="fas fa-lock me-1"></i>
+                                            Your personal data is used solely to process your order and support your experience on this site.
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+
+                            <button type="submit"
+                                    class="btn btn-dark btn-modern w-100 text-uppercase bg-color-hover-primary border-color-hover-primary border-radius-0 text-3 py-3">
+                                Place Order <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var subtotal = @Model.CartSubtotal;
+            var expressRate = 99;
+            var totalEl = document.querySelector('#orderTotal .amount');
+
+            document.querySelectorAll('input[name="ShippingMethod"]').forEach(function (radio) {
+                radio.addEventListener('change', function () {
+                    var shipping = this.value === 'Express Shipping' ? expressRate : 0;
+                    var total = subtotal + shipping;
+                    totalEl.textContent = 'R\u00a0' + total.toLocaleString('en-ZA', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                });
+            });
+        })();
+    </script>
+}

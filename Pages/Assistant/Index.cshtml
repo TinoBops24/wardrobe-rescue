@@ -1,0 +1,865 @@
+﻿@page
+@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant.IndexModel
+@using Microsoft.AspNetCore.Http
+@{
+    ViewData["Title"] = "AI Stylist";
+    Layout = "_ChatLayout";
+
+    bool isProductSearch = Model.LastConstraints?.IsProductSearch == true;
+    bool hasActiveSession = Model.CurrentSession != null && Model.CurrentSession.Messages.Any();
+    var userId = HttpContext.Session.GetString(INF4027W_BPTTIN002_MiniPrj_2026.Helpers.SessionKeys.UserId);
+    var userName = HttpContext.Session.GetString(INF4027W_BPTTIN002_MiniPrj_2026.Helpers.SessionKeys.UserName);
+    bool isLoggedIn = userId != null;
+    var displayName = !string.IsNullOrEmpty(userName) ? userName : "Guest";
+    var avatarInitial = displayName[0].ToString().ToUpper();
+}
+
+@section Styles {
+    <style>
+        /* ── Layout ── */
+        .wr-app {
+            display: flex;
+            width: 100%;
+            height: calc(100vh - var(--navbar-height));
+            overflow: hidden;
+            background: var(--bg-main);
+        }
+
+        /* ── Sidebar ── */
+        .wr-sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--porto-blue) 0%, var(--porto-blue-deeper) 100%);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .wr-sidebar-top {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .wr-new-chat-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.65rem 1rem;
+            background: rgba(255,255,255,0.12);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 0.625rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s;
+            font-family: var(--font-body);
+        }
+
+            .wr-new-chat-btn:hover {
+                background: rgba(255,255,255,0.2);
+                border-color: rgba(255,255,255,0.35);
+                color: white;
+            }
+
+        .wr-sidebar-section-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--text-sidebar-dim);
+            padding: 1rem 1rem 0.4rem;
+        }
+
+        .wr-history-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 0 0.5rem 1rem;
+        }
+
+            .wr-history-list::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            .wr-history-list::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.2);
+                border-radius: 4px;
+            }
+
+        .wr-history-item {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            padding: 0.6rem 0.75rem;
+            border-radius: 0.5rem;
+            color: var(--text-sidebar);
+            text-decoration: none;
+            font-size: 0.835rem;
+            transition: background 0.15s;
+            margin-bottom: 1px;
+        }
+
+            .wr-history-item:hover {
+                background: rgba(255,255,255,0.12);
+                color: white;
+            }
+
+            .wr-history-item.active {
+                background: rgba(255,255,255,0.18);
+                color: white;
+                font-weight: 500;
+            }
+
+            .wr-history-item i {
+                font-size: 0.75rem;
+                opacity: 0.7;
+                flex-shrink: 0;
+            }
+
+            .wr-history-item span {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+        .wr-sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .wr-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 1.5px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .wr-sidebar-user-name {
+            font-size: 0.835rem;
+            font-weight: 500;
+            color: var(--text-sidebar);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .wr-sidebar-user-role {
+            font-size: 0.7rem;
+            color: var(--text-sidebar-dim);
+        }
+
+        .wr-signin-prompt {
+            font-size: 0.78rem;
+            color: var(--text-sidebar-dim);
+            padding: 0 0.75rem 0.5rem;
+        }
+
+            .wr-signin-prompt a {
+                color: rgba(255,255,255,0.8);
+                text-decoration: underline;
+                text-underline-offset: 2px;
+            }
+
+        /* ── Chat Area ── */
+        .wr-chat-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg-white);
+            position: relative;
+        }
+
+        .wr-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 2rem 1.5rem 160px;
+            scroll-behavior: smooth;
+        }
+
+            .wr-messages::-webkit-scrollbar {
+                width: 5px;
+            }
+
+            .wr-messages::-webkit-scrollbar-thumb {
+                background: #e5e7eb;
+                border-radius: 5px;
+            }
+
+        /* ── Welcome Screen ── */
+        .wr-welcome {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            animation: fadeUp 0.5s ease;
+        }
+
+        @@keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .wr-welcome-icon {
+            display: none;
+        }
+
+        .wr-welcome h2 {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            text-transform: none;
+            line-height: 1.3;
+        }
+
+        .wr-welcome p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            max-width: 380px;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .wr-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            max-width: 520px;
+        }
+
+        .wr-chip {
+            padding: 0.5rem 1rem;
+            border: 1.5px solid var(--border-light);
+            border-radius: 2rem;
+            font-size: 0.835rem;
+            color: #374151;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-body);
+            white-space: nowrap;
+        }
+
+            .wr-chip:hover {
+                border-color: var(--porto-blue);
+                color: var(--porto-blue);
+                background: rgba(0,136,204,0.04);
+                transform: translateY(-1px);
+                box-shadow: 0 2px 8px rgba(0,136,204,0.12);
+            }
+
+        /* ── Message Rows ── */
+        .wr-msg-row {
+            display: flex;
+            margin-bottom: 1.5rem;
+            animation: fadeUp 0.3s ease;
+            max-width: 780px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+        }
+
+            .wr-msg-row.user {
+                justify-content: flex-end;
+            }
+
+            .wr-msg-row.ai {
+                justify-content: flex-start;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+        .wr-ai-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--porto-blue), var(--porto-blue-dark));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* User bubble */
+        .wr-bubble-user {
+            background: var(--porto-blue);
+            color: white;
+            padding: 0.75rem 1.125rem;
+            border-radius: 1.125rem 1.125rem 0.25rem 1.125rem;
+            max-width: 70%;
+            font-size: 0.925rem;
+            line-height: 1.6;
+            box-shadow: 0 2px 8px rgba(0,136,204,0.2);
+            word-break: break-word;
+        }
+
+        /* AI bubble */
+        .wr-bubble-ai-wrap {
+            flex-grow: 1;
+            max-width: calc(100% - 44px);
+        }
+
+        .wr-bubble-ai {
+            background: #f3f4f6;
+            color: var(--text-primary);
+            padding: 0.875rem 1.125rem;
+            border-radius: 0.25rem 1.125rem 1.125rem 1.125rem;
+            font-size: 0.925rem;
+            line-height: 1.7;
+            display: inline-block;
+            max-width: 100%;
+            word-break: break-word;
+        }
+
+            .wr-bubble-ai strong {
+                color: var(--porto-blue);
+            }
+
+        .wr-msg-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            padding: 0 0.25rem;
+        }
+
+        .wr-msg-row.user .wr-msg-time {
+            text-align: right;
+        }
+
+        /* Results area below AI bubble */
+        .wr-results-area {
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+        /* ── Input Area ──
+                   Fixed to bottom of chat area. Gradient fade ensures messages
+                   don't appear to abruptly end behind the input box.         */
+        .wr-input-area {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to bottom, transparent 0%, white 32%);
+            padding: 0.75rem 1.5rem 1.25rem;
+            display: flex;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .wr-input-inner {
+            width: 100%;
+            max-width: 780px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        /* Image preview strip */
+        .wr-preview-strip {
+            display: none;
+            align-items: center;
+            gap: 0.625rem;
+            background: #f9fafb;
+            border: 1px solid var(--border-light);
+            border-radius: 0.625rem;
+            padding: 0.5rem 0.75rem;
+        }
+
+            .wr-preview-strip.visible {
+                display: flex;
+            }
+
+            .wr-preview-strip img {
+                width: 36px;
+                height: 36px;
+                object-fit: cover;
+                border-radius: 0.375rem;
+            }
+
+            .wr-preview-strip span {
+                font-size: 0.8rem;
+                color: #6b7280;
+                flex-grow: 1;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .wr-preview-strip button {
+                background: none;
+                border: none;
+                color: #9ca3af;
+                cursor: pointer;
+                padding: 2px;
+                display: flex;
+                align-items: center;
+                transition: color 0.2s;
+            }
+
+                .wr-preview-strip button:hover {
+                    color: #ef4444;
+                }
+
+        /* The pill container */
+        .wr-input-pill {
+            background: white;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 1rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            display: flex;
+            align-items: flex-end; /* aligns send btn to bottom when textarea grows */
+            padding: 0.5rem 0.5rem 0.5rem 0.875rem;
+            gap: 0.5rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+            .wr-input-pill:focus-within {
+                border-color: var(--porto-blue);
+                box-shadow: 0 4px 20px rgba(0,136,204,0.15);
+            }
+
+        .wr-attach-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 0.5rem;
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: color 0.2s, background 0.2s;
+            padding: 0;
+            /* Vertically centre with single-line textarea */
+            margin-bottom: 1px;
+        }
+
+            .wr-attach-btn:hover {
+                color: var(--porto-blue);
+                background: rgba(0,136,204,0.06);
+            }
+
+        /* Textarea — auto-grows, never jumps on load */
+        .wr-text-input {
+            flex-grow: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            /* Vertical padding gives the illusion of a centred single-line field
+                       while allowing graceful multiline growth                           */
+            padding: 0.55rem 0;
+            resize: none;
+            /* One visible line + padding = ~42px. Max allows ~4 lines. */
+            min-height: 40px;
+            max-height: 120px;
+            line-height: 1.55;
+            overflow-y: auto;
+            /* Prevents the invisible scrollbar from causing layout shifts */
+            scrollbar-width: none;
+        }
+
+            .wr-text-input::-webkit-scrollbar {
+                display: none;
+            }
+
+            .wr-text-input::placeholder {
+                color: #c4c9d4;
+            }
+
+        /* Send button — stays at bottom-right of pill regardless of textarea height */
+        .wr-send-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 0.625rem;
+            background: var(--porto-blue);
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.2s, transform 0.15s;
+            padding: 0;
+        }
+
+            .wr-send-btn:hover {
+                background: var(--porto-blue-dark);
+                transform: scale(1.05);
+            }
+
+            .wr-send-btn:disabled {
+                background: #d1d5db;
+                transform: none;
+                cursor: not-allowed;
+            }
+
+        .wr-input-footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #c4c9d4;
+            /* No extra margin — gap on .wr-input-inner handles spacing */
+        }
+
+        /* ── Typing Indicator ── */
+        .wr-typing {
+            display: flex;
+            gap: 4px;
+            padding: 0.875rem 1.125rem;
+            background: #f3f4f6;
+            border-radius: 0.25rem 1.125rem 1.125rem 1.125rem;
+            width: fit-content;
+        }
+
+            .wr-typing span {
+                width: 7px;
+                height: 7px;
+                background: #9ca3af;
+                border-radius: 50%;
+                animation: bounce 1.2s infinite;
+            }
+
+                .wr-typing span:nth-child(2) {
+                    animation-delay: 0.15s;
+                }
+
+                .wr-typing span:nth-child(3) {
+                    animation-delay: 0.3s;
+                }
+
+        @@keyframes bounce {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+    </style>
+}
+
+<div class="wr-app">
+
+
+    <!-- 
+         SIDEBAR
+    -->
+    <aside class="wr-sidebar d-none d-md-flex flex-column">
+
+        <div class="wr-sidebar-top">
+            <a href="/Assistant/Index" class="wr-new-chat-btn">
+                <i class="fas fa-plus" style="font-size:0.75rem;"></i>
+                New Style Chat
+            </a>
+        </div>
+
+        <div class="wr-sidebar-section-label">Recent Chats</div>
+
+        <div class="wr-history-list">
+            @if (!isLoggedIn)
+            {
+                <div class="wr-signin-prompt">
+                    <a href="/Account/Login">Sign in</a> to save your styling history.
+                </div>
+            }
+            else if (Model.PastChats.Any())
+            {
+                foreach (var chat in Model.PastChats)
+                {
+                    <a href="/Assistant/Index?sessionId=@chat.Id"
+                       class="wr-history-item @(Model.CurrentSessionId == chat.Id ? "active" : "")">
+                        <i class="far fa-comment-dots"></i>
+                        <span>@chat.Title</span>
+                    </a>
+                }
+            }
+            else
+            {
+                <div class="wr-signin-prompt">No past chats yet. Start a conversation!</div>
+            }
+        </div>
+
+        <div class="wr-sidebar-footer">
+            <div class="wr-avatar">@avatarInitial</div>
+            <div style="overflow:hidden;">
+                <div class="wr-sidebar-user-name">@displayName</div>
+                <div class="wr-sidebar-user-role">@(isLoggedIn ? "Member" : "Guest")</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 
+         CHAT AREA
+     -->
+    <main class="wr-chat-area">
+        <div class="wr-messages" id="wr-chat-box">
+
+            @if (!hasActiveSession)
+            {
+                <!-- Welcome Screen -->
+                <div class="wr-welcome">
+                    <h2>How can I style you today?</h2>
+                    <p>Describe an occasion, search for a specific item, or upload a photo of clothing to get personalised recommendations.</p>
+
+                    <div class="wr-chips">
+                        <button class="wr-chip" onclick="fillPrompt('Outfit for a job interview for a man')">
+                            <i class="fas fa-briefcase me-1" style="font-size:0.75rem; color: var(--porto-blue);"></i>
+                            Interview outfit for a man
+                        </button>
+                        <button class="wr-chip" onclick="fillPrompt('Date night look for a woman')">
+                            <i class="fas fa-heart me-1" style="font-size:0.75rem; color: #f43f5e;"></i>
+                            Date night for a woman
+                        </button>
+                        <button class="wr-chip" onclick="fillPrompt('Smart casual outfit for a man')">
+                            <i class="fas fa-star me-1" style="font-size:0.75rem; color: #f59e0b;"></i>
+                            Smart casual for a man
+                        </button>
+                        <button class="wr-chip" onclick="fillPrompt('Show me some dresses for women')">
+                            <i class="fas fa-shirt me-1" style="font-size:0.75rem; color: var(--porto-blue);"></i>
+                            Browse women's dresses
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Chat History -->
+                foreach (var message in Model.CurrentSession!.Messages)
+                {
+                    bool isLast = message == Model.CurrentSession.Messages.Last();
+
+                    if (message.Role == "user")
+                    {
+                        <div class="wr-msg-row user">
+                            <div>
+                                <div class="wr-bubble-user">@message.Text</div>
+                                <div class="wr-msg-time">You</div>
+                            </div>
+                        </div>
+                    }
+                    else if (message.Role == "ai")
+                    {
+                        <div class="wr-msg-row ai">
+                            <div class="wr-ai-avatar">
+                                <i class="fas fa-robot text-white" style="font-size:0.75rem;"></i>
+                            </div>
+                            <div class="wr-bubble-ai-wrap">
+                                <div class="wr-bubble-ai">
+                                    @Html.Raw(System.Text.RegularExpressions.Regex.Replace(
+                                    message.Text,
+                                                                                @"\*\*(.*?)\*\*",
+                                                                                "<strong>$1</strong>"))
+                    </div>
+                    <div class="wr-msg-time">AI Stylist</div>
+
+                    @if (isLast && Model.HasResults)
+                                {
+                                    <div class="wr-results-area">
+                                        @if (isProductSearch)
+                                        {
+                                            @await Html.PartialAsync("_ProductResults", Model)
+                                            @if (Model.RecommendedBundles.Any())
+                                            {
+                                                @await Html.PartialAsync("_BundleResults", Model)
+                                            }
+                                        }
+                                        else
+                                        {
+                                            @if (Model.RecommendedBundles.Any())
+                                            {
+                                                @await Html.PartialAsync("_BundleResults", Model)
+                                            }
+                                            @if (Model.RecommendedProducts.Any())
+                                            {
+                                                <h6 class="mt-4 mb-3 text-uppercase fw-bold"
+                                                    style="font-size:0.7rem; letter-spacing:1.2px; color: var(--text-muted);">
+                                                    Individual Pieces
+                                                </h6>
+                                                @await Html.PartialAsync("_ProductResults", Model)
+                                            }
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            }
+
+        </div>
+
+        <!-- ── Input Area  -->
+        <div class="wr-input-area">
+            <div class="wr-input-inner">
+
+                <!-- Image preview strip -->
+                <div id="wr-preview-strip" class="wr-preview-strip">
+                    <img id="wr-preview-thumb" src="" alt="Preview">
+                    <span id="wr-preview-name"></span>
+                    <button type="button" id="wr-preview-clear" title="Remove image">
+                        <i class="fas fa-times" style="font-size:0.75rem;"></i>
+                    </button>
+                </div>
+
+                <form method="post"
+                      enctype="multipart/form-data"
+                      asp-page="/Assistant/Index"
+                      id="wr-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="CurrentSessionId" value="@Model.CurrentSessionId" />
+                    <input type="file" id="wr-file-input" name="UploadedImage"
+                           accept="image/jpeg,image/png,image/webp" class="d-none">
+
+                    <div class="wr-input-pill">
+                        <label for="wr-file-input"
+                               class="wr-attach-btn"
+                               data-bs-toggle="tooltip"
+                               data-bs-placement="top"
+                               title="Upload a clothing photo for personalised recommendations">
+                            <i class="fas fa-paperclip" style="font-size:0.9rem;"></i>
+                        </label>
+
+                        <textarea id="wr-text-input"
+                                  name="UserPrompt"
+                                  class="wr-text-input"
+                                  placeholder="Message AI Stylist..."
+                                  autocomplete="off"
+                                  rows="1"></textarea>
+
+                        <button type="submit" id="wr-send-btn" class="wr-send-btn">
+                            <i class="fas fa-arrow-up" style="font-size:0.85rem;"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="wr-input-footer">
+                    AI Stylist can make mistakes — always check your outfit requirements.
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        // ── Auto-resize textarea 
+        const textarea = document.getElementById('wr-text-input');
+        textarea.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Enter to submit (Shift+Enter for newline) 
+        textarea.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('wr-send-btn').click();
+            }
+        });
+
+        // Form submit handler 
+        document.getElementById('wr-form').addEventListener('submit', function (e) {
+            const hasText  = textarea.value.trim().length > 0;
+            const hasImage = document.getElementById('wr-file-input').files.length > 0;
+
+            if (!hasText && !hasImage) {
+                e.preventDefault();
+                textarea.focus();
+                return;
+            }
+
+            const btn = document.getElementById('wr-send-btn');
+
+            // Show typing indicator
+            const chatBox = document.getElementById('wr-chat-box');
+            const typingRow = document.createElement('div');
+            typingRow.className = 'wr-msg-row ai';
+            typingRow.id = 'wr-typing-indicator';
+            typingRow.innerHTML = `
+                <div class="wr-ai-avatar">
+                    <i class="fas fa-robot text-white" style="font-size:0.75rem;"></i>
+                </div>
+                <div class="wr-typing">
+                    <span></span><span></span><span></span>
+                </div>`;
+            chatBox.appendChild(typingRow);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            setTimeout(() => {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size:0.85rem;"></i>';
+            }, 50);
+        });
+
+        // Image preview 
+        const fileInput    = document.getElementById('wr-file-input');
+        const previewStrip = document.getElementById('wr-preview-strip');
+        const previewThumb = document.getElementById('wr-preview-thumb');
+        const previewName  = document.getElementById('wr-preview-name');
+
+        fileInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                previewThumb.src = e.target.result;
+                previewName.textContent = file.name;
+                previewStrip.classList.add('visible');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('wr-preview-clear').addEventListener('click', function () {
+            fileInput.value = '';
+            previewStrip.classList.remove('visible');
+        });
+
+        // Suggestion chips 
+        function fillPrompt(text) {
+            textarea.value = text;
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            textarea.focus();
+        }
+
+        // Auto-scroll on load 
+        document.addEventListener('DOMContentLoaded', function () {
+            const chatBox = document.getElementById('wr-chat-box');
+            if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    </script>
+}

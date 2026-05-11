@@ -1,0 +1,241 @@
+﻿@page
+@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.Admin.DashboardModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row">
+
+    <div class="col-12 mb-3">
+        <h4 class="fw-semibold text-dark mb-1">@Model.Greeting, @Model.DisplayName.</h4>
+        <p class="text-muted fs-13 mb-0">Here's what's happening with your store today.</p>
+    </div>
+
+    <div class="col-xxl-3 col-md-6">
+        <div class="card stretch stretch-full">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between mb-4">
+                    <div class="d-flex gap-4 align-items-center">
+                        <div class="avatar-text avatar-lg bg-gray-200">
+                            <i class="feather-tag"></i>
+                        </div>
+                        <div>
+                            <div class="fs-4 fw-bold text-dark">@Model.TotalProducts</div>
+                            <h3 class="fs-13 fw-semibold text-truncate-1-line">Published Products</h3>
+                        </div>
+                    </div>
+                    <a asp-page="/Admin/Products/Index" class="text-muted" data-bs-toggle="tooltip" title="View Products">
+                        <i class="feather-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="pt-4 border-top">
+                    <a asp-page="/Admin/Products/Index" class="fs-12 fw-medium text-primary">View all products</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xxl-3 col-md-6">
+        <div class="card stretch stretch-full">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between mb-4">
+                    <div class="d-flex gap-4 align-items-center">
+                        <div class="avatar-text avatar-lg bg-gray-200">
+                            <i class="feather-shopping-bag"></i>
+                        </div>
+                        <div>
+                            <div class="fs-4 fw-bold text-dark">@Model.TotalOrders</div>
+                            <h3 class="fs-13 fw-semibold text-truncate-1-line">Total Orders</h3>
+                        </div>
+                    </div>
+                    <a asp-page="/Admin/Orders/Index" class="text-muted" data-bs-toggle="tooltip" title="View Orders">
+                        <i class="feather-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="pt-4 border-top">
+                    <a asp-page="/Admin/Orders/Index" class="fs-12 fw-medium text-primary">View all orders</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xxl-3 col-md-6">
+        <div class="card stretch stretch-full">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between mb-4">
+                    <div class="d-flex gap-4 align-items-center">
+                        <div class="avatar-text avatar-lg bg-gray-200">
+                            <i class="feather-users"></i>
+                        </div>
+                        <div>
+                            <div class="fs-4 fw-bold text-dark">@Model.TotalCustomers</div>
+                            <h3 class="fs-13 fw-semibold text-truncate-1-line">Registered Customers</h3>
+                        </div>
+                    </div>
+                    <a asp-page="/Admin/Customers/Index" class="text-muted" data-bs-toggle="tooltip" title="View Customers">
+                        <i class="feather-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="pt-4 border-top">
+                    <a asp-page="/Admin/Reports/Customers/Index" class="fs-12 fw-medium text-primary">View all customers</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 mt-2 mb-2">
+        <h6 class="fw-semibold text-dark">
+            Financial Summary
+            <span class="fs-12 text-muted fw-normal ms-2">Based on paid orders</span>
+            <a asp-page="/Admin/Reports/Financial" class="fs-12 fw-medium text-primary ms-3">
+                Full Report <i class="feather-arrow-right fs-11"></i>
+            </a>
+        </h6>
+    </div>
+
+    <div class="col-xxl-4 col-md-4">
+        <div class="card stretch stretch-full border-start border-primary border-3">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="avatar-text avatar-lg bg-soft-primary text-primary">
+                        <i class="feather-trending-up"></i>
+                    </div>
+                    <div>
+                        <div class="fs-4 fw-bold text-dark">R @Model.TotalRevenue.ToString("N0")</div>
+                        <h3 class="fs-13 fw-semibold text-muted mb-0">Total Revenue</h3>
+                        <small class="text-muted fs-11">Sum of all paid order amounts</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xxl-4 col-md-4">
+        <div class="card stretch stretch-full border-start border-warning border-3">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="avatar-text avatar-lg bg-soft-warning text-warning">
+                        <i class="feather-shopping-cart"></i>
+                    </div>
+                    <div>
+                        <div class="fs-4 fw-bold text-dark">R @Model.TotalCostOfSales.ToString("N0")</div>
+                        <h3 class="fs-13 fw-semibold text-muted mb-0">Cost of Sales</h3>
+                        <small class="text-muted fs-11">Sum of cost prices for paid orders</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xxl-4 col-md-4">
+        <div class="card stretch stretch-full border-start @(Model.NetProfit >= 0 ? "border-success" : "border-danger") border-3">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="avatar-text avatar-lg @(Model.NetProfit >= 0 ? "bg-soft-success text-success" : "bg-soft-danger text-danger")">
+                        <i class="feather-dollar-sign"></i>
+                    </div>
+                    <div>
+                        <div class="fs-4 fw-bold @(Model.NetProfit >= 0 ? "text-success" : "text-danger")">
+                            R @Model.NetProfit.ToString("N0")
+                        </div>
+                        <h3 class="fs-13 fw-semibold text-muted mb-0">Net Profit</h3>
+                        <small class="text-muted fs-11">Revenue minus cost of sales</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 mt-2">
+        <div class="card stretch stretch-full">
+
+            <div class="card-header">
+                <h5 class="card-title">Recent Orders</h5>
+                <div class="card-header-action">
+                    <a asp-page="/Admin/Orders/Index" class="btn btn-sm btn-light-brand">
+                        <i class="feather-list me-2"></i>View All
+                    </a>
+                </div>
+            </div>
+
+            <div class="card-body custom-card-action p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr class="border-b">
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            @if (!Model.RecentOrders.Any())
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <i class="feather-inbox fs-2 text-muted d-block mb-2"></i>
+                                        <span class="text-muted fs-13">No orders have been placed yet.</span>
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var order in Model.RecentOrders)
+                                {
+                                    var _statusTuple = order.Status switch
+                                    {
+                                        INF4027W_BPTTIN002_MiniPrj_2026.Models.OrderStatus.Paid => ("bg-soft-success text-success", "Paid"),
+                                        INF4027W_BPTTIN002_MiniPrj_2026.Models.OrderStatus.Cancelled => ("bg-soft-danger text-danger", "Cancelled"),
+                                        _ => ("bg-gray-200 text-dark", order.Status.ToString())
+                                    };
+                                    var badgeClass = _statusTuple.Item1;
+                                    var statusLabel = _statusTuple.Item2;
+                                    <tr>
+                                        <td>
+                                            <span class="fw-semibold text-dark fs-13">@order.Id</span>
+                                        </td>
+                                        <td>
+                                            <span class="d-block fs-13">@order.CustomerName</span>
+                                            <span class="d-block fs-12 text-muted">@order.CustomerEmail</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-semibold fs-13">R @order.TotalAmount.ToString("N0")</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-gray-200 text-dark">@order.PaymentMethod</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge @badgeClass">@statusLabel</span>
+                                        </td>
+                                        <td>
+                                            <span class="fs-12 text-muted">
+                                                @order.OrderDate.ToDateTime().ToLocalTime().ToString("dd MMM yyyy, HH:mm")
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a asp-page="/Admin/Orders/Index"
+                                               class="avatar-text avatar-sm"
+                                               data-bs-toggle="tooltip"
+                                               title="View Orders">
+                                                <i class="feather-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>

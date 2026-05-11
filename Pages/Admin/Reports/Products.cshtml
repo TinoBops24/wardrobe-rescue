@@ -1,0 +1,194 @@
+﻿@page
+@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.Admin.Reports.ProductsModel
+@using INF4027W_BPTTIN002_MiniPrj_2026.Models
+@{
+    ViewData["Title"] = "Product Report";
+    Layout = "_AdminLayout";
+}
+
+<div class="row">
+    <div class="col-xxl-3 col-md-6">
+        <div class="card stretch stretch-full">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between mb-4">
+                    <div class="d-flex gap-4 align-items-center">
+                        <div class="avatar-text avatar-lg bg-gray-200">
+                            <i class="feather-tag"></i>
+                        </div>
+                        <div>
+                            <div class="fs-4 fw-bold text-dark">@Model.TotalProducts</div>
+                            <h3 class="fs-13 fw-semibold text-truncate-1-line">Total Products</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xxl-3 col-md-6">
+        <div class="card stretch stretch-full">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between mb-4">
+                    <div class="d-flex gap-4 align-items-center">
+                        <div class="avatar-text avatar-lg bg-gray-200">
+                            <i class="feather-grid"></i>
+                        </div>
+                        <div>
+                            <div class="fs-4 fw-bold text-dark">@Model.TotalCategories</div>
+                            <h3 class="fs-13 fw-semibold text-truncate-1-line">Categories</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xxl-3 col-md-6">
+        <div class="card stretch stretch-full">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between mb-4">
+                    <div class="d-flex gap-4 align-items-center">
+                        <div class="avatar-text avatar-lg bg-gray-200">
+                            <i class="feather-dollar-sign"></i>
+                        </div>
+                        <div>
+                            <div class="fs-4 fw-bold text-dark">R @Model.AveragePrice.ToString("N0")</div>
+                            <h3 class="fs-13 fw-semibold text-truncate-1-line">Average Price</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xxl-3 col-md-6">
+        <div class="card stretch stretch-full">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between mb-4">
+                    <div class="d-flex gap-4 align-items-center">
+                        <div class="avatar-text avatar-lg bg-gray-200">
+                            <i class="feather-award"></i>
+                        </div>
+                        <div>
+                            <div class="fs-13 fw-bold text-dark">@Model.TopSellingProduct</div>
+                            <h3 class="fs-13 fw-semibold text-muted">Best Seller</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-2">
+    <div class="col-12">
+        <div class="card stretch stretch-full">
+            <div class="card-header">
+                <h5 class="card-title">Product Performance</h5>
+                <small class="text-muted fs-11">Sorted by units sold</small>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-gray-200">
+                            <tr>
+                                <th class="ps-4" style="width:40px;">#</th>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Cost</th>
+                                <th>Margin</th>
+                                <th>Units Sold</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.PagedStats.Any())
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-muted fs-13">No product data available.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                var rank = (Model.CurrentPage - 1) * 10 + 1;
+                                @foreach (var p in Model.PagedStats)
+                                {
+                                    var margin = p.Price > 0 ? ((p.Price - p.Cost) / p.Price) * 100 : 0;
+                                    var isTopSeller = rank == 1 && Model.CurrentPage == 1;
+                                    <tr class="@(isTopSeller ? "table-success" : "")">
+                                        <td class="ps-4">
+                                            <span class="fw-bold @(isTopSeller ? "text-success" : "text-muted") fs-13">@rank</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                @if (!string.IsNullOrEmpty(p.ImageUrl))
+                                                {
+                                                    <img src="@p.ImageUrl" alt="@p.Name"
+                                                         style="width:42px;height:42px;object-fit:cover;border-radius:6px;flex-shrink:0;">
+                                                }
+                                                else
+                                                {
+                                                    <div class="avatar-text avatar-md bg-gray-200">
+                                                        <i class="feather-tag"></i>
+                                                    </div>
+                                                }
+                                                <div>
+                                                    <span class="fw-semibold fs-13 d-block @(isTopSeller ? "text-success" : "")">@p.Name</span>
+                                                    <small class="@(isTopSeller ? "text-success" : "text-muted") fs-11">@p.Gender</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-soft-primary text-primary">@p.Category</span>
+                                        </td>
+                                        <td class="fs-13">R @p.Price.ToString("N0")</td>
+                                        <td class="text-muted fs-13">R @p.Cost.ToString("N0")</td>
+                                        <td>
+                                            <span class="badge @(margin >= 40 ? "bg-soft-success text-success" : margin >= 20 ? "bg-soft-warning text-warning" : "bg-soft-danger text-danger")">
+                                                @margin.ToString("N1")%
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold @(isTopSeller ? "text-success" : "text-dark")">@p.UnitsSold</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-semibold @(isTopSeller ? "text-success" : "text-primary") fs-13">R @p.RevenueGenerated.ToString("N0")</span>
+                                        </td>
+                                    </tr>
+                                    rank++;
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (Model.TotalPages > 1)
+                {
+                    <div class="d-flex align-items-center justify-content-between px-4 py-3 border-top">
+                        <small class="text-muted fs-12">
+                            Page @Model.CurrentPage of @Model.TotalPages
+                        </small>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0 gap-1">
+                                <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" asp-page="/Admin/Reports/Products" asp-route-currentPage="@(Model.CurrentPage - 1)">
+                                        <i class="feather-chevron-left"></i>
+                                    </a>
+                                </li>
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                        <a class="page-link" asp-page="/Admin/Reports/Products" asp-route-currentPage="@i">@i</a>
+                                    </li>
+                                }
+                                <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                                    <a class="page-link" asp-page="/Admin/Reports/Products" asp-route-currentPage="@(Model.CurrentPage + 1)">
+                                        <i class="feather-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,358 @@
+﻿@page
+@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.Admin.Products.IndexModel
+@{
+    ViewData["Title"] = "Products";
+    Layout = "_AdminLayout";
+}
+
+@Html.AntiForgeryToken()
+
+<div class="row">
+    <div class="col-12">
+        <div class="card stretch stretch-full">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h5 class="card-title mb-0">All Products</h5>
+                <a asp-page="/Admin/Products/Create" class="btn btn-primary btn-sm">
+                    <i class="feather-plus me-1"></i>Add Product
+                </a>
+            </div>
+            <div class="card-body p-0">
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger mx-4 mt-3" role="alert">
+                        <i class="feather-alert-circle me-2"></i>@TempData["Error"]
+                    </div>
+                }
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success mx-4 mt-3" role="alert">
+                        <i class="feather-check-circle me-2"></i>@TempData["Success"]
+                    </div>
+                }
+
+                @if (!Model.Products.Any() && string.IsNullOrEmpty(Model.SearchQuery) && Model.Filter == "all")
+                {
+                    <div class="text-center py-5">
+                        <i class="feather-tag fs-1 text-muted mb-3 d-block"></i>
+                        <h5 class="text-muted">No products yet</h5>
+                        <p class="text-muted fs-13">Add your first product to start building your catalogue.</p>
+                        <a asp-page="/Admin/Products/Create" class="btn btn-primary mt-2">
+                            <i class="feather-plus me-2"></i>Add First Product
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <!-- Filter Tabs -->
+                    <div class="px-4 pt-4">
+                        <ul class="nav nav-tabs gap-1 mb-0">
+                            <li class="nav-item">
+                                <a class="nav-link @(Model.Filter == "all" ? "active" : "")"
+                                   asp-page="/Admin/Products/Index" asp-route-filter="all">
+                                    All <span class="badge bg-gray-200 text-dark ms-1">@Model.TotalCount</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(Model.Filter == "live" ? "active" : "")"
+                                   asp-page="/Admin/Products/Index" asp-route-filter="live">
+                                    Live <span class="badge bg-soft-success text-success ms-1">@Model.LiveCount</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(Model.Filter == "draft" ? "active" : "")"
+                                   asp-page="/Admin/Products/Index" asp-route-filter="draft">
+                                    Drafts <span class="badge bg-soft-warning text-warning ms-1">@Model.DraftCount</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(Model.Filter == "hidden" ? "active" : "")"
+                                   asp-page="/Admin/Products/Index" asp-route-filter="hidden">
+                                    Hidden <span class="badge bg-soft-danger text-danger ms-1">@Model.HiddenCount</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <div class="px-4 py-3">
+                        <form method="get" class="d-flex gap-2">
+                            <input type="hidden" name="filter" value="@Model.Filter" />
+                            <div class="input-group input-group-sm" style="max-width: 420px;">
+                                <span class="input-group-text bg-white">
+                                    <i class="feather-search text-muted"></i>
+                                </span>
+                                <input type="text"
+                                       name="search"
+                                       class="form-control"
+                                       placeholder="Search by name, category, tags..."
+                                       value="@Model.SearchQuery"
+                                       autocomplete="off">
+                                @if (!string.IsNullOrEmpty(Model.SearchQuery))
+                                {
+                                    <a asp-page="/Admin/Products/Index"
+                                       asp-route-filter="@Model.Filter"
+                                       class="btn btn-outline-secondary btn-sm">
+                                        <i class="feather-x"></i>
+                                    </a>
+                                }
+                                <button type="submit" class="btn btn-primary btn-sm">Search</button>
+                            </div>
+                        </form>
+
+                        @if (!string.IsNullOrEmpty(Model.SearchQuery))
+                        {
+                            <div class="mt-2 text-muted fs-13">
+                                @Model.FilteredCount result@(Model.FilteredCount == 1 ? "" : "s") for
+                                <strong>"@Model.SearchQuery"</strong>
+                            </div>
+                        }
+                    </div>
+
+                    @if (!Model.Products.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="feather-search fs-1 text-muted mb-3 d-block"></i>
+                            <h5 class="text-muted">No products found</h5>
+                            <p class="text-muted fs-13">
+                                @if (!string.IsNullOrEmpty(Model.SearchQuery))
+                                {
+                                    <span>No results for "<strong>@Model.SearchQuery</strong>". Try a different search.</span>
+                                }
+                                else
+                                {
+                                    <span>No products in this category yet.</span>
+                                }
+                            </p>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Table -->
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-gray-200">
+                                    <tr>
+                                        <th class="ps-4">Product</th>
+                                        <th>Category</th>
+                                        <th>Price</th>
+                                        <th>Gender</th>
+                                        <th>Stock</th>
+                                        <th>Status</th>
+                                        <th style="width:100px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var product in Model.Products)
+                                    {
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                                    {
+                                                        <img src="@product.ImageUrl" alt="@product.Name"
+                                                             class="rounded border"
+                                                             style="width:44px;height:44px;object-fit:contain;background:#f9f9f9;">
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="rounded border bg-gray-200 d-flex align-items-center justify-content-center"
+                                                             style="width:44px;height:44px;">
+                                                            <i class="feather-image text-muted"></i>
+                                                        </div>
+                                                    }
+                                                    <div>
+                                                        <span class="d-block fw-semibold">@product.Name</span>
+                                                        <div class="d-flex gap-1 mt-1">
+                                                            @if (product.IsNew)
+                                                            {
+                                                                <span class="badge bg-soft-primary text-primary fs-10">New</span>
+                                                            }
+                                                            @if (product.DiscountPercentage > 0)
+                                                            {
+                                                                <span class="badge bg-soft-danger text-danger fs-10">@(product.DiscountPercentage)% Off</span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-gray-200 text-dark">@product.Category</span>
+                                            </td>
+                                            <td>
+                                                @if (product.DiscountPrice.HasValue)
+                                                {
+                                                    <span class="fw-semibold text-success">R @(product.DiscountPrice.Value.ToString("N0"))</span>
+                                                    <span class="text-muted text-decoration-line-through d-block fs-12">R @(product.Price.ToString("N0"))</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="fw-semibold">R @(product.Price.ToString("N0"))</span>
+                                                }
+                                            </td>
+                                            <td class="text-muted">@product.Gender</td>
+                                            <td>
+                                                @if (product.StockLevel == 0)
+                                                {
+                                                    <span class="badge bg-soft-danger text-danger">Out of Stock</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">@product.StockLevel</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (product.IsDraft)
+                                                {
+                                                    <span class="badge bg-soft-warning text-warning">Draft</span>
+                                                }
+                                                else if (product.IsHiddenFromWeb)
+                                                {
+                                                    <span class="badge bg-soft-danger text-danger">Hidden</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-soft-success text-success">Live</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <a asp-page="/Admin/Products/Edit"
+                                                       asp-route-id="@product.Id"
+                                                       class="btn btn-sm btn-light-brand"
+                                                       title="Edit">
+                                                        <i class="feather-edit-2"></i>
+                                                    </a>
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-soft-danger"
+                                                            title="Delete"
+                                                            onclick="confirmDelete('@product.Id', '@Html.Raw(product.Name.Replace("'", "\\'"))')">
+                                                        <i class="feather-trash-2"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        @if (Model.TotalPages > 1)
+                        {
+                            <div class="d-flex align-items-center justify-content-between px-4 py-3 border-top">
+                                <div class="text-muted fs-13">
+                                    Showing @((Model.CurrentPage - 1) * 10 + 1)–@(Math.Min(Model.CurrentPage * 10, Model.FilteredCount))
+                                    of @Model.FilteredCount products
+                                </div>
+                                <nav>
+                                    <ul class="pagination pagination-sm mb-0 gap-1">
+                                        <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                                            <a class="page-link"
+                                               asp-page="/Admin/Products/Index"
+                                               asp-route-filter="@Model.Filter"
+                                               asp-route-search="@Model.SearchQuery"
+                                               asp-route-pageNum="@(Model.CurrentPage - 1)">
+                                                <i class="feather-chevron-left"></i>
+                                            </a>
+                                        </li>
+
+                                        @for (int i = 1; i <= Model.TotalPages; i++)
+                                        {
+                                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                                <a class="page-link"
+                                                   asp-page="/Admin/Products/Index"
+                                                   asp-route-filter="@Model.Filter"
+                                                   asp-route-search="@Model.SearchQuery"
+                                                   asp-route-pageNum="@i">@i</a>
+                                            </li>
+                                        }
+
+                                        <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                                            <a class="page-link"
+                                               asp-page="/Admin/Products/Index"
+                                               asp-route-filter="@Model.Filter"
+                                               asp-route-search="@Model.SearchQuery"
+                                               asp-route-pageNum="@(Model.CurrentPage + 1)">
+                                                <i class="feather-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        }
+                    }
+                }
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Delete Product</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete <strong id="deleteProductName"></strong>?
+                This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-brand" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let pendingDeleteId = null;
+
+        function confirmDelete(id, name) {
+            pendingDeleteId = id;
+            document.getElementById('deleteProductName').textContent = name;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+            if (!pendingDeleteId) return;
+
+            const btn = this;
+            btn.disabled = true;
+            btn.textContent = 'Deleting...';
+
+            const modalEl = document.getElementById('deleteModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+
+            modalEl.addEventListener('hidden.bs.modal', function () {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '?handler=Delete';
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = token;
+
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = pendingDeleteId;
+
+                form.appendChild(tokenInput);
+                form.appendChild(idInput);
+                document.body.appendChild(form);
+                form.submit();
+            }, { once: true });
+        });
+    </script>
+}

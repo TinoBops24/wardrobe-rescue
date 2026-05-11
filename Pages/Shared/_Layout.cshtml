@@ -1,0 +1,463 @@
+﻿@using INF4027W_BPTTIN002_MiniPrj_2026.Helpers
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no">
+    <title>@ViewData["Title"] - Wardrobe Rescue</title>
+
+    <link rel="shortcut icon" href="~/porto/img/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="~/porto/img/apple-touch-icon.png">
+    <link id="googleFonts" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800%7CShadows+Into+Light%7CPlayfair+Display:400&display=swap" rel="stylesheet" type="text/css">
+
+    <!-- Vendor CSS -->
+    <link rel="stylesheet" href="~/porto/vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/porto/vendor/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="~/porto/vendor/animate/animate.compat.css">
+    <link rel="stylesheet" href="~/porto/vendor/simple-line-icons/css/simple-line-icons.min.css">
+    <link rel="stylesheet" href="~/porto/vendor/owl.carousel/assets/owl.carousel.min.css">
+    <link rel="stylesheet" href="~/porto/vendor/owl.carousel/assets/owl.theme.default.min.css">
+    <link rel="stylesheet" href="~/porto/vendor/magnific-popup/magnific-popup.min.css">
+    <link rel="stylesheet" href="~/porto/vendor/bootstrap-star-rating/css/star-rating.min.css">
+    <link rel="stylesheet" href="~/porto/vendor/bootstrap-star-rating/themes/krajee-fas/theme.min.css">
+
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="~/porto/css/theme.css">
+    <link rel="stylesheet" href="~/porto/css/theme-elements.css">
+    <link rel="stylesheet" href="~/porto/css/theme-blog.css">
+    <link rel="stylesheet" href="~/porto/css/theme-shop.css">
+    <link id="skinCSS" rel="stylesheet" href="~/porto/css/skins/default.css">
+    <link rel="stylesheet" href="~/porto/css/custom.css">
+    <link rel="stylesheet" href="~/porto/css/demos/demo-marketing-1.css">
+
+    <style>
+        @@media (min-width: 1200px) {
+            .demo-marketing-1 .container,
+            .container {
+                max-width: 1280px !important;
+            }
+        }
+
+        section.hero .section-angled-content {
+            padding-top: 0 !important;
+        }
+
+        section.hero .row.py-5 {
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+        }
+
+        .custom-bg-gradient-1 {
+            background: linear-gradient(135deg, #2ebfa5 0%, #4ecdc4 100%) !important;
+        }
+
+        .wr-admin-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #212529;
+            color: #ffffff !important;
+            font-size: 0.7rem !important;
+            font-weight: 600 !important;
+            padding: 3px 10px;
+            border-radius: 20px;
+            text-decoration: none !important;
+            letter-spacing: 0.5px;
+            transition: background 0.2s;
+            text-transform: uppercase;
+        }
+
+            .wr-admin-link:hover {
+                background: #0088cc;
+                color: #ffffff !important;
+            }
+
+            .wr-admin-link i {
+                font-size: 0.65rem;
+            }
+
+        .header-top {
+            padding-top: 6px !important;
+            padding-bottom: 6px !important;
+        }
+
+        .header-container .header-row {
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+        }
+    </style>
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="body">
+
+        @{
+            var isLoggedIn = Context.Session.GetString(SessionKeys.UserId) != null;
+            var sessionUserName = Context.Session.GetString(SessionKeys.UserName);
+            var isAdmin = Context.Session.GetString(SessionKeys.IsAdmin) == "true";
+        }
+
+        <!-- Notice Top Bar -->
+        <div class="notice-top-bar bg-primary" data-sticky-start-at="180">
+            <button class="hamburguer-btn hamburguer-btn-light notice-top-bar-close m-0 active" data-set-active="false">
+                <span class="close"><span></span><span></span></span>
+            </button>
+            <div class="container">
+                <div class="row justify-content-center py-2">
+                    <div class="col-9 col-md-12 text-center">
+                        <p class="text-color-light font-weight-semibold mb-0">
+                            Find Your Perfect Outfit with <strong>AI Assistance</strong>
+                            <span class="opacity-6 text-1">* Personalised recommendations.</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header id="header" data-plugin-options="{'stickyEnabled': true, 'stickyEnableOnBoxed': true, 'stickyEnableOnMobile': false, 'stickyStartAt': 135, 'stickySetTop': '-135px', 'stickyChangeLogo': true}">
+            <div class="header-body header-body-bottom-border-fixed box-shadow-none border-top-0">
+
+                <!-- Header Top -->
+                <div class="header-top header-top-small-minheight header-top-simple-border-bottom">
+                    <div class="container">
+                        <div class="header-row justify-content-between">
+
+                            <div class="header-column col-auto px-0">
+                                <div class="header-row">
+                                    <p class="font-weight-semibold text-1 mb-0 d-none d-sm-block">AI-POWERED OUTFIT RECOMMENDATIONS</p>
+                                </div>
+                            </div>
+
+                            <div class="header-column justify-content-end col-auto px-0">
+                                <div class="header-row">
+                                    <nav class="header-nav-top">
+                                        <ul class="nav nav-pills font-weight-semibold text-2 align-items-center">
+
+                                            <li class="nav-item d-none d-lg-inline-block">
+                                                <a asp-page="/Index" class="text-decoration-none text-color-default text-color-hover-primary">Home</a>
+                                            </li>
+                                            <li class="nav-item d-none d-lg-inline-block">
+                                                <a asp-page="/Contact" class="text-decoration-none text-color-default text-color-hover-primary">Contact</a>
+                                            </li>
+                                            <li class="nav-item d-none d-xl-inline-block">
+                                                <a href="#" class="text-decoration-none text-color-default text-color-hover-primary">Help &amp; FAQs</a>
+                                            </li>
+
+                                            @if (isLoggedIn)
+                                            {
+                                                <li class="nav-item nav-item-left-border d-none d-lg-inline-block">
+                                                    <a asp-page="/Account/Profile" class="text-decoration-none text-color-default text-color-hover-primary">
+                                                        @sessionUserName
+                                                    </a>
+                                                </li>
+                                                <li class="nav-item nav-item-left-border d-none d-lg-inline-block">
+                                                    <a asp-page="/Account/Logout" class="text-decoration-none text-color-default text-color-hover-primary">Sign Out</a>
+                                                </li>
+
+                                                @if (isAdmin)
+                                                {
+                                                    <li class="nav-item d-none d-lg-inline-block ms-2">
+                                                        <a asp-page="/Admin/Dashboard" class="wr-admin-link">
+                                                            <i class="fas fa-shield-alt"></i> Admin
+                                                        </a>
+                                                    </li>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <li class="nav-item nav-item-left-border d-none d-lg-inline-block">
+                                                    <a asp-page="/Account/Login" class="text-decoration-none text-color-default text-color-hover-primary">Sign In</a>
+                                                </li>
+                                            }
+
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Header Container -->
+                <div class="header-container container">
+                    <div class="header-row py-2">
+                        <div class="header-column w-100">
+                            <div class="header-row justify-content-between align-items-center">
+
+                                <!-- Brand wordmark -->
+                                <div class="header-logo z-index-2 col-lg-2 px-0">
+                                    <a asp-page="/Index">
+                                        <h1 class="mb-0" style="font-family:'Poppins',sans-serif;font-size:1.3rem;font-weight:800;letter-spacing:-0.5px;line-height:1;">
+                                            Wardrobe<span style="color:var(--color-primary);">Rescue</span>
+                                        </h1>
+                                    </a>
+                                </div>
+
+                                <!-- Search -->
+                                <div class="header-nav-features header-nav-features-no-border p-relative z-index-2 col col-lg-5 col-xl-6 px-0 ms-0">
+                                    <div class="header-nav-feature ps-lg-5 pe-2 pe-lg-4 me-4 me-lg-0">
+                                        <form role="search" asp-page="/Products/Index" method="get">
+                                            <div class="search-with-select">
+                                                <a href="#" class="mobile-search-toggle-btn text-decoration-none" data-toggle-class="open">
+                                                    <i class="icons icon-magnifier text-color-dark text-color-hover-primary"></i>
+                                                </a>
+                                                <div class="search-form-wrapper input-group">
+                                                    <input class="form-control text-1" name="SearchQuery" type="search"
+                                                           value="@ViewData["SearchQuery"]" placeholder="Search products...">
+                                                    <div class="search-form-select-wrapper">
+                                                        <button class="btn" type="submit" aria-label="Search">
+                                                            <i class="icons icon-magnifier header-nav-top-icon text-color-dark"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Icons + Cart -->
+                                <div class="d-flex col-auto col-lg-2 pe-0 ps-0 ps-xl-3">
+                                    <ul class="header-extra-info">
+                                        <li class="ms-0 ms-xl-4">
+                                            <div class="header-extra-info-icon">
+                                                <a asp-page="@(isLoggedIn ? "/Account/Profile" : "/Account/Login")"
+                                                   class="text-decoration-none text-color-dark text-color-hover-primary text-2"
+                                                   title="@(isLoggedIn ? "My Account" : "Sign In")">
+                                                    <i class="icons icon-user"></i>
+                                                </a>
+                                            </div>
+                                        </li>
+                                        <li class="me-2 ms-3">
+                                            <div class="header-extra-info-icon">
+                                                <a asp-page="/Account/Wishlist"
+                                                   class="text-decoration-none text-color-dark text-color-hover-primary text-2"
+                                                   title="Wishlist">
+                                                    <i class="icons icon-heart"></i>
+                                                </a>
+                                            </div>
+                                        </li>
+                                    </ul>
+
+                                    @{
+                                        var miniCart = Context.Session.GetCart();
+                                        var miniCartTotal = miniCart.Sum(c => c.Price * c.Quantity);
+                                    }
+
+                                    <div class="header-nav-features ps-0 ms-1">
+                                        <div class="header-nav-feature header-nav-features-cart header-nav-features-cart-big d-inline-flex top-2 ms-2">
+
+                                            <a href="#" class="header-nav-features-toggle" aria-label="Cart">
+                                                <img src="~/porto/img/icons/icon-cart-big.svg" height="30" alt="" class="header-nav-top-icon-img">
+                                                <span class="cart-info">
+                                                    <span class="cart-qty" id="cart-count">@(miniCart.Sum(c => c.Quantity))</span>
+                                                </span>
+                                            </a>
+
+                                            <div class="header-nav-features-dropdown" id="headerTopCartDropdown">
+                                                @if (!miniCart.Any())
+                                                {
+                                                    <div class="text-center py-3 px-2">
+                                                        <i class="fas fa-shopping-cart text-muted mb-2" style="font-size:28px;opacity:0.3;"></i>
+                                                        <p class="text-muted text-2 mb-0">Your cart is empty.</p>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <ol class="mini-products-list">
+                                                        @foreach (var item in miniCart)
+                                                        {
+                                                            <li class="item">
+                                                                <a asp-page="/Products/Details" asp-route-id="@item.ProductId" class="product-image">
+                                                                    <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/porto/img/products/product-grey-1.jpg" : item.ImageUrl)"
+                                                                         alt="@item.ProductName"
+                                                                         onerror="this.src='/porto/img/products/product-grey-1.jpg'">
+                                                                </a>
+                                                                <div class="product-details">
+                                                                    <p class="product-name">
+                                                                        <a asp-page="/Products/Details" asp-route-id="@item.ProductId">@item.ProductName</a>
+                                                                    </p>
+                                                                    <p class="qty-price">
+                                                                        @item.Quantity X <span class="price">R @item.Price.ToString("N0")</span>
+                                                                    </p>
+                                                                    <a asp-page="/Cart/Index" asp-route-removeId="@item.ProductId"
+                                                                       title="Remove This Item" class="btn-remove">
+                                                                        <i class="fas fa-times"></i>
+                                                                    </a>
+                                                                </div>
+                                                            </li>
+                                                        }
+                                                    </ol>
+                                                    <div class="totals">
+                                                        <span class="label">Total:</span>
+                                                        <span class="price-total">
+                                                            <span class="price">R @miniCartTotal.ToString("N0")</span>
+                                                        </span>
+                                                    </div>
+                                                }
+                                                <div class="actions">
+                                                    <a class="btn btn-dark" asp-page="/Cart/Index">View Cart</a>
+                                                    <a class="btn btn-primary" asp-page="/Checkout/Index">Checkout</a>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Bar -->
+                <div class="header-nav-bar header-nav-bar-top-border bg-light p-relative z-index-1">
+                    <div class="header-container container">
+                        <div class="header-row">
+                            <div class="header-column">
+                                <div class="header-row justify-content-end">
+                                    <div class="header-nav header-nav-line header-nav-top-line header-nav-top-line-with-border justify-content-start">
+                                        <div class="header-nav-main header-nav-main-square header-nav-main-dropdown-no-borders header-nav-main-effect-3 header-nav-main-sub-effect-1 w-100">
+                                            <nav class="collapse w-100">
+                                                <ul class="nav nav-pills w-100" id="mainNav">
+
+                                                    <li class="dropdown">
+                                                        <a class="dropdown-item" asp-page="/Index">Home</a>
+                                                    </li>
+
+                                                    <li class="dropdown">
+                                                        <a class="dropdown-item dropdown-toggle" asp-page="/Assistant/Index">
+                                                            AI Stylist
+                                                        </a>
+                                                        <ul class="dropdown-menu">
+                                                            <li><a class="dropdown-item" asp-page="/Assistant/Index">Start Styling</a></li>
+                                                            <li><a class="dropdown-item" asp-page="/Assistant/Index">Interview Outfits</a></li>
+                                                            <li><a class="dropdown-item" asp-page="/Assistant/Index">Date Night</a></li>
+                                                            <li><a class="dropdown-item" asp-page="/Assistant/Index">Casual Looks</a></li>
+                                                            <li><a class="dropdown-item" asp-page="/Assistant/Index">Formal Events</a></li>
+                                                        </ul>
+                                                    </li>
+
+                                                    <li class="dropdown">
+                                                        <a class="dropdown-item" asp-page="/Products/Index">Products</a>
+                                                    </li>
+
+                                                    @if (isLoggedIn)
+                                                    {
+                                                        <li class="dropdown ms-lg-auto">
+                                                            <a class="dropdown-item" asp-page="/Account/Orders">My Orders</a>
+                                                        </li>
+                                                    }
+
+                                                </ul>
+                                            </nav>
+                                        </div>
+                                        <button class="btn header-btn-collapse-nav" data-bs-toggle="collapse" data-bs-target=".header-nav-main nav">
+                                            <i class="fas fa-bars"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        @RenderBody()
+
+        <!-- Footer -->
+        <footer id="footer" class="footer-texts-more-lighten">
+            <div class="container">
+                <div class="row py-4 my-5">
+                    <div class="col-md-6 col-lg-3 mb-5 mb-lg-0">
+                        <a asp-page="/Index" class="d-inline-block mb-3">
+                            <img src="https://raw.githubusercontent.com/TinoBops24/wardrobe-rescue-images/main/WR-logo.png"
+                                 alt="Wardrobe Rescue"
+                                 style="height:70px;width:auto;">
+                        </a>
+                        <p class="mb-3">Your AI-powered fashion assistant for every occasion.</p>
+                        <ul class="list list-unstyled">
+                            <li class="pb-1 mb-2">
+                                <span class="d-block font-weight-normal line-height-1 text-color-light">EMAIL</span>
+                                <a href="mailto:info@wardroberescue.com">info@wardroberescue.com</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 col-lg-3 mb-5 mb-lg-0">
+                        <h5 class="text-4 text-color-light mb-3">SHOP</h5>
+                        <ul class="list list-unstyled mb-0">
+                            <li class="mb-0"><a asp-page="/Assistant/Index">AI Stylist</a></li>
+                            <li class="mb-0"><a asp-page="/Products/Index">All Products</a></li>
+                            <li class="mb-0"><a asp-page="/Cart/Index">Cart</a></li>
+                            @if (isLoggedIn)
+                            {
+                                <li class="mb-0"><a asp-page="/Account/Orders">My Orders</a></li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="col-md-6 col-lg-3 mb-5 mb-lg-0">
+                        <h5 class="text-4 text-color-light mb-3">CUSTOMER SERVICE</h5>
+                        <ul class="list list-unstyled mb-0">
+                            <li class="mb-0"><a href="#">Help &amp; FAQs</a></li>
+                            <li class="mb-0"><a href="#">Shipping &amp; Delivery</a></li>
+                            <li class="mb-0"><a asp-page="/About">About Us</a></li>
+                            <li class="mb-0"><a asp-page="/Contact">Contact</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <h5 class="text-4 text-color-light mb-3">SUBSCRIBE</h5>
+                        <p class="mb-2">Get style tips and exclusive offers:</p>
+                        <form class="form-style-5 opacity-10">
+                            <div class="row">
+                                <div class="form-group col">
+                                    <input class="form-control" placeholder="Email Address" type="email" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group col">
+                                    <button class="btn btn-primary btn-rounded btn-px-4 btn-py-2 font-weight-bold" type="button">SUBSCRIBE</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="footer-copyright footer-copyright-style-2 pt-4 pb-5">
+                    <div class="row align-items-center justify-content-md-between">
+                        <div class="col-12 col-md-auto text-center text-md-start mb-2 mb-md-0">
+                            <p class="mb-0">Wardrobe Rescue &copy; @DateTime.Now.Year. All Rights Reserved</p>
+                        </div>
+                        <div class="col-12 col-md-auto">
+                            <div class="payment-cc justify-content-center justify-content-md-end">
+                                <i class="fab fa-cc-visa"></i>
+                                <i class="fab fa-cc-mastercard"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </div><!-- .body -->
+    <!-- Vendor Scripts -->
+    <script src="~/porto/vendor/plugins/js/plugins.min.js"></script>
+    <script src="~/porto/vendor/bootstrap-star-rating/js/star-rating.min.js"></script>
+    <script src="~/porto/vendor/bootstrap-star-rating/themes/krajee-fas/theme.min.js"></script>
+    <script src="~/porto/vendor/jquery.countdown/jquery.countdown.min.js"></script>
+    <script src="~/porto/js/theme.js"></script>
+    <script src="~/porto/vendor/gsap/gsap.min.js"></script>
+    <script src="~/porto/vendor/gsap/ScrollTrigger.min.js"></script>
+    <script src="~/porto/js/demos/demo-marketing-1.js"></script>
+    <script src="~/porto/js/views/view.shop.js"></script>
+    <script src="~/porto/js/custom.js"></script>
+    <script src="~/porto/js/theme.init.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,652 @@
+﻿@page
+@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.Admin.Products.EditModel
+@{
+    ViewData["Title"] = "Edit Product";
+    Layout = "_AdminLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@yaireo/tagify/dist/tagify.css">
+}
+
+<form method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Product.Id">
+    <input type="hidden" asp-for="Product.CreatedAt">
+
+    <!-- Hidden input populated by Tagify — submitted as comma-separated string -->
+    <input type="hidden" name="TagsRaw" id="tagsRawInput" value="@Model.TagsRaw">
+
+    <div class="row g-3">
+
+        <!-- ── LEFT COLUMN ── -->
+        <div class="col-lg-8">
+
+            <!-- Basic Info -->
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <h6 class="card-title mb-0">Product Information</h6>
+                </div>
+                <div class="card-body py-2">
+                    <div class="mb-2">
+                        <label class="form-label mb-1 fw-semibold">Product Name <span class="text-danger">*</span></label>
+                        <input asp-for="Product.Name" class="form-control form-control-sm" required>
+                        <span asp-validation-for="Product.Name" class="text-danger fs-12"></span>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label mb-1 fw-semibold">Description</label>
+                        <textarea asp-for="Product.Description" class="form-control form-control-sm" rows="2"></textarea>
+                    </div>
+                    <div class="row g-2 mb-0">
+                        <div class="col-md-6">
+                            <label class="form-label mb-1 fw-semibold">Category <span class="text-danger">*</span></label>
+                            <select asp-for="Product.Category" class="form-select form-select-sm" id="categorySelect" required>
+                                <option value="">Select category...</option>
+                                <option>Tops</option>
+                                <option>Bottoms</option>
+                                <option>Dresses</option>
+                                <option>Skirts</option>
+                                <option>Jackets</option>
+                                <option>Shoes</option>
+                                <option>Outerwear</option>
+                                <option>Accessories</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label mb-1 fw-semibold">Gender</label>
+                            <select asp-for="Product.Gender" class="form-select form-select-sm">
+                                <option value="Unisex">Unisex</option>
+                                <option value="Men's">Men's</option>
+                                <option value="Women's">Women's</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-0 mt-2">
+                        <label class="form-label mb-1 fw-semibold">Product Tags</label>
+                        <input id="tagsInput" class="form-control form-control-sm"
+                               placeholder='Type a tag and press Enter — e.g. slim fit, cotton, breathable'>
+                        <div class="fs-12 text-muted mt-1">Free-hand tags used for filtering and outfit matching.</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Pricing -->
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <h6 class="card-title mb-0">Pricing</h6>
+                </div>
+                <div class="card-body py-2">
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label mb-1 fw-semibold">Selling Price <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">R</span>
+                                <input asp-for="Product.Price" class="form-control" type="number" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1 fw-semibold">Cost Price</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">R</span>
+                                <input asp-for="Product.Cost" class="form-control" type="number" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1 fw-semibold">Discount</label>
+                            <div class="input-group input-group-sm">
+                                <input asp-for="Product.DiscountPercentage" class="form-control" type="number" min="0" max="100" id="discountInput">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-2 px-2 py-1 bg-gray-100 rounded" id="pricePreview" style="display:none;">
+                        <small class="text-muted">Customer sees: </small>
+                        <span class="fw-semibold text-success" id="discountedPriceDisplay"></span>
+                        <span class="text-muted text-decoration-line-through ms-2 fs-12" id="originalPriceDisplay"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attributes -->
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <h6 class="card-title mb-0">Attributes</h6>
+                </div>
+                <div class="card-body py-2">
+
+                    <!-- ── SIZES ── -->
+                    <div class="mb-2">
+                        <label class="form-label mb-1 fw-semibold">Available Sizes</label>
+
+                        <!-- Clothing sizes — shown for all categories except Shoes -->
+                        <div id="clothingSizes" class="d-flex flex-wrap gap-3">
+                            @foreach (var size in new[] { "XS", "S", "M", "L", "XL", "XXL", "One Size" })
+                            {
+                                var sizeId = size.Replace(" ", "_");
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" name="SelectedSizes" value="@size"
+                                           id="size_@sizeId" @(Model.Product.Sizes.Contains(size) ? "checked" : "")>
+                                    <label class="form-check-label" for="size_@sizeId">@size</label>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Shoe sizes (UK 4–12) — shown only when Shoes is selected -->
+                        <div id="shoeSizes" class="d-flex flex-wrap gap-3" style="display:none !important;">
+                            @foreach (var size in new[] { "UK 4", "UK 5", "UK 6", "UK 7", "UK 8", "UK 9", "UK 10", "UK 11", "UK 12" })
+                            {
+                                var sizeId = size.Replace(" ", "_");
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" name="SelectedSizes" value="@size"
+                                           id="size_@sizeId" @(Model.Product.Sizes.Contains(size) ? "checked" : "")>
+                                    <label class="form-check-label" for="size_@sizeId">@size</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <!-- ── END SIZES ── -->
+
+                    <div class="mb-2">
+                        <label class="form-label mb-1 fw-semibold">Occasion Tags</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            @foreach (var tag in new[] { "Interview", "Office", "Casual", "Smart Casual", "Date Night", "Formal", "Campus", "After-Work" })
+                            {
+                                var tagId = tag.Replace(" ", "_");
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" name="SelectedOccasionTags" value="@tag"
+                                           id="tag_@tagId" @(Model.Product.OccasionTags.Contains(tag) ? "checked" : "")>
+                                    <label class="form-check-label" for="tag_@tagId">@tag</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label mb-1 fw-semibold">Formality Score: <span id="formalityValue">@Model.Product.FormalityScore</span> / 5</label>
+                        <input asp-for="Product.FormalityScore" type="range" class="form-range" min="1" max="5" step="1"
+                               oninput="document.getElementById('formalityValue').textContent = this.value">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">1 — Very Casual</small>
+                            <small class="text-muted">5 — Very Formal</small>
+                        </div>
+                    </div>
+
+                    <!-- ── DOMINANT COLOUR ── -->
+                    <div class="row g-2 mb-0">
+                        <div class="col-md-6">
+                            <label class="form-label mb-1 fw-semibold">Dominant Colour</label>
+
+                            <input asp-for="Product.DominantColor"
+                                   id="colourNameInput"
+                                   class="form-control form-control-sm mb-1"
+                                   placeholder="e.g. Charcoal, Olive, Navy"
+                                   autocomplete="off"
+                                   oninput="onColourNameInput(this.value)">
+
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text" id="colourSwatchPreview"
+                                      style="width:32px; background-color: @(string.IsNullOrEmpty(Model.Product.DominantColor) ? "#cccccc" : ResolveHex(Model.Product.DominantColor)); transition: background 0.2s;">
+                                </span>
+                                <input type="text"
+                                       id="colourHexDisplay"
+                                       class="form-control form-control-sm text-muted"
+                                       readonly
+                                       placeholder="Hex code"
+                                       value="@(string.IsNullOrEmpty(Model.Product.DominantColor) ? "" : ResolveHex(Model.Product.DominantColor))">
+                                <span class="input-group-text p-1">
+                                    <input type="color"
+                                           id="colourPicker"
+                                           value="@(string.IsNullOrEmpty(Model.Product.DominantColor) ? "#cccccc" : ResolveHex(Model.Product.DominantColor))"
+                                           style="width:28px;height:28px;border:none;cursor:pointer;padding:0;"
+                                           oninput="onPickerInput(this.value)"
+                                           title="Pick a custom colour">
+                                </span>
+                            </div>
+                            <small id="colourFeedback" class="form-text text-muted fs-11"></small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label mb-1 fw-semibold">Stock Level</label>
+                            <input asp-for="Product.StockLevel" class="form-control form-control-sm" type="number" min="0">
+                            <small class="text-muted fs-11">Default 999 = unlimited</small>
+                        </div>
+                    </div>
+                    <!-- ── END DOMINANT COLOUR ── -->
+
+                </div>
+            </div>
+
+            <!-- Image -->
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <h6 class="card-title mb-0">Product Image</h6>
+                </div>
+                <div class="card-body py-2">
+                    <label class="form-label mb-1 fw-semibold">Image URL</label>
+                    <input asp-for="Product.ImageUrl" class="form-control form-control-sm"
+                           id="imageUrlInput"
+                           oninput="updateImagePreview(this.value)">
+                    <div class="mt-2" id="imagePreviewContainer"
+                         style="display:@(string.IsNullOrEmpty(Model.Product.ImageUrl) ? "none" : "block")">
+                        <img id="imagePreview" src="@Model.Product.ImageUrl" alt="Preview"
+                             class="rounded border"
+                             style="max-height:180px;max-width:100%;object-fit:contain;">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── RIGHT COLUMN ── -->
+        <div class="col-lg-4">
+
+            <!-- Visibility -->
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <h6 class="card-title mb-0">Visibility</h6>
+                </div>
+                <div class="card-body py-2">
+                    <div class="mb-2">
+                        @if (Model.Product.IsDraft)
+                        {
+                            <span id="statusBadge" class="badge bg-soft-warning text-warning">
+                                <i class="feather-edit me-1"></i>Draft
+                            </span>
+                        }
+                        else if (Model.Product.IsHiddenFromWeb)
+                        {
+                            <span id="statusBadge" class="badge bg-soft-danger text-danger">
+                                <i class="feather-eye-off me-1"></i>Hidden from Web
+                            </span>
+                        }
+                        else
+                        {
+                            <span id="statusBadge" class="badge bg-soft-success text-success">
+                                <i class="feather-globe me-1"></i>Live
+                            </span>
+                        }
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input asp-for="Product.IsDraft" class="form-check-input" type="checkbox"
+                               id="isDraftToggle" onchange="updateStatusBadge()">
+                        <label class="form-check-label fw-semibold" for="isDraftToggle">Save as Draft</label>
+                        <div class="fs-12 text-muted">Not visible to customers until published.</div>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input asp-for="Product.IsHiddenFromWeb" class="form-check-input" type="checkbox"
+                               id="isHiddenToggle" onchange="updateStatusBadge()">
+                        <label class="form-check-label fw-semibold" for="isHiddenToggle">Hide from Web</label>
+                        <div class="fs-12 text-muted">Published but not shown on the storefront.</div>
+                    </div>
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="feather-save me-1"></i>Save Changes
+                        </button>
+                        <a asp-page="/Admin/Products/Index" class="btn btn-light-brand btn-sm">Cancel</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flags & Rating -->
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <h6 class="card-title mb-0">Flags & Rating</h6>
+                </div>
+                <div class="card-body py-2">
+                    <div class="form-check form-switch mb-3">
+                        <input asp-for="Product.IsNew" class="form-check-input" type="checkbox" id="isNewToggle">
+                        <label class="form-check-label fw-semibold" for="isNewToggle">Mark as New Arrival</label>
+                        <div class="fs-12 text-muted">Displays a "New" badge on the product card.</div>
+                    </div>
+                    <label class="form-label mb-1 fw-semibold">Rating: <span id="ratingValue">@Model.Product.Rating.ToString("F1")</span> / 5</label>
+                    <input asp-for="Product.Rating" type="range" class="form-range" min="1" max="5" step="0.5"
+                           oninput="document.getElementById('ratingValue').textContent = parseFloat(this.value).toFixed(1)">
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="card mb-3 border-danger">
+                <div class="card-header py-2">
+                    <h6 class="card-title mb-0 text-danger">Danger Zone</h6>
+                </div>
+                <div class="card-body py-2">
+                    <p class="fs-12 text-muted mb-2">Permanently deletes this product. Cannot be undone.</p>
+                    <button type="button" class="btn btn-outline-danger btn-sm w-100"
+                            data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="feather-trash-2 me-1"></i>Delete Product
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</form>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Delete Product</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to permanently delete <strong>@Model.Product.Name</strong>?
+                This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-brand btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" asp-page-handler="Delete">
+                    <input type="hidden" name="id" value="@Model.Product.Id">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="feather-trash-2 me-1"></i>Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/@@yaireo/tagify"></script>
+    <script>
+        // COLOUR MAP 
+        const colourMap = {
+            // Neutrals
+            "white":        "#FFFFFF",
+            "black":        "#1A1A1A",
+            "grey":         "#808080",
+            "gray":         "#808080",
+            "charcoal":     "#36454F",
+            "cream":        "#FFFDD0",
+            "ivory":        "#FFFFF0",
+            "beige":        "#F5F5DC",
+            "sand":         "#C2B280",
+            "off-white":    "#FAF9F6",
+            "stone":        "#928E85",
+            "slate":        "#708090",
+
+            // Blues
+            "navy":         "#1B2A4A",
+            "blue":         "#4A90D9",
+            "denim":        "#1560BD",
+            "cobalt":       "#0047AB",
+            "electric":     "#0088CC",
+            "sky":          "#87CEEB",
+            "powder":       "#B0E0E6",
+
+            // Greens
+            "olive":        "#6B7C45",
+            "sage":         "#87AE73",
+            "khaki":        "#C3B091",
+            "forest":       "#228B22",
+            "mint":         "#98FF98",
+            "green":        "#4CAF50",
+            "army":         "#4B5320",
+
+            // Browns & Earth
+            "camel":        "#C19A6B",
+            "tan":          "#D2B48C",
+            "brown":        "#8B4513",
+            "rust":         "#B7410E",
+            "terracotta":   "#E2725B",
+            "earth":        "#A0785A",
+            "chocolate":    "#7B3F00",
+            "taupe":        "#483C32",
+
+            // Reds & Pinks
+            "red":          "#CC2936",
+            "burgundy":     "#800020",
+            "maroon":       "#800000",
+            "pink":         "#FFC0CB",
+            "blush":        "#FADADD",
+            "coral":        "#FF6B6B",
+            "rose":         "#FF007F",
+
+            // Yellows & Oranges
+            "yellow":       "#FFD700",
+            "mustard":      "#FFDB58",
+            "orange":       "#FF8C00",
+            "amber":        "#FFBF00",
+            "lemon":        "#FFF44F",
+
+            // Purples
+            "purple":       "#6A0DAD",
+            "lavender":     "#E6E6FA",
+            "lilac":        "#C8A2C8",
+            "plum":         "#8E4585",
+            "violet":       "#7F00FF",
+
+            // Metals & Special
+            "silver":       "#C0C0C0",
+            "gold":         "#FFD700",
+            "bronze":       "#CD7F32",
+            "copper":       "#B87333",
+            "white-marble": "#F5F5F5",
+        };
+
+        //RESOLVE HEX 
+        function resolveHex(value) {
+            if (!value) return "#cccccc";
+            const key = value.trim().toLowerCase().replace(/\s+/g, "-");
+            return colourMap[key] || ((/^#[0-9A-Fa-f]{6}$/).test(value) ? value : "#cccccc");
+        }
+
+        // SYNC ALL COLOUR UI from a hex value 
+        function syncColourUI(hex) {
+            document.getElementById("colourPicker").value       = hex;
+            document.getElementById("colourHexDisplay").value  = hex;
+            document.getElementById("colourSwatchPreview").style.backgroundColor = hex;
+        }
+
+        // HANDLER: admin types a colour name
+        function onColourNameInput(value) {
+            const key = value.trim().toLowerCase().replace(/\s+/g, "-");
+            const hex = colourMap[key];
+            const feedback = document.getElementById("colourFeedback");
+
+            if (hex) {
+                syncColourUI(hex);
+                feedback.textContent = "Matched → " + hex;
+                feedback.style.color = hex === "#FFFFFF" ? "#aaa" : hex;
+            } else if ((/^#[0-9A-Fa-f]{6}$/).test(value.trim())) {
+                syncColourUI(value.trim());
+                feedback.textContent = "Custom hex applied";
+                feedback.style.color = "#6c757d";
+            } else {
+                document.getElementById("colourSwatchPreview").style.backgroundColor = "#cccccc";
+                document.getElementById("colourHexDisplay").value = "";
+                feedback.textContent = value.length > 1 ? "No match — use the colour picker to set manually" : "";
+                feedback.style.color = "#aaa";
+            }
+        }
+
+        //HANDLER: admin picks from the colour wheel
+        function onPickerInput(hex) {
+            document.getElementById("colourHexDisplay").value = hex;
+            document.getElementById("colourSwatchPreview").style.backgroundColor = hex;
+            document.getElementById("colourFeedback").textContent = "Custom colour selected → " + hex;
+            document.getElementById("colourFeedback").style.color = "#6c757d";
+        }
+
+        // initialise colour UI
+        (function initColour() {
+            const savedValue = document.getElementById("colourNameInput").value;
+            if (savedValue) {
+                const hex = resolveHex(savedValue);
+                syncColourUI(hex);
+                if (colourMap[savedValue.trim().toLowerCase().replace(/\s+/g, "-")]) {
+                    const feedback = document.getElementById("colourFeedback");
+                    feedback.textContent = "Matched → " + hex;
+                    feedback.style.color = hex === "#FFFFFF" ? "#aaa" : hex;
+                }
+            }
+        })();
+
+        // TAGIFY — pre-populated from existing product tags 
+        const tagInput  = document.getElementById('tagsInput');
+        const tagHidden = document.getElementById('tagsRawInput');
+
+        // Convert the comma-separated TagsRaw value into the JSON array format
+        // that Tagify expects for initialisation: [{"value":"tag1"},{"value":"tag2"}]
+        const existingTags = tagHidden.value
+            ? tagHidden.value.split(',')
+                .map(t => t.trim())
+                .filter(t => t.length > 0)
+                .map(t => ({ value: t }))
+            : [];
+
+        const tagify = new Tagify(tagInput, {
+            maxTags: 20,
+            originalInputValueFormat: valuesArr => valuesArr.map(item => item.value).join(',')
+        });
+
+        // Load existing tags into Tagify on page load
+        if (existingTags.length > 0) {
+            tagify.addTags(existingTags);
+        }
+
+        // Keep hidden input in sync as tags are added or removed
+        tagify.on('change', () => {
+            tagHidden.value = tagify.value.map(t => t.value).join(',');
+        });
+
+        // Final sync on submit to catch any edge cases
+        document.querySelector('form').addEventListener('submit', () => {
+            tagHidden.value = tagify.value.map(t => t.value).join(',');
+        });
+
+        //STATUS BADGE 
+        function updateStatusBadge() {
+            const isDraft  = document.getElementById('isDraftToggle').checked;
+            const isHidden = document.getElementById('isHiddenToggle').checked;
+            const badge    = document.getElementById('statusBadge');
+            if (isDraft) {
+                badge.className = 'badge bg-soft-warning text-warning';
+                badge.innerHTML = '<i class="feather-edit me-1"></i>Draft';
+            } else if (isHidden) {
+                badge.className = 'badge bg-soft-danger text-danger';
+                badge.innerHTML = '<i class="feather-eye-off me-1"></i>Hidden from Web';
+            } else {
+                badge.className = 'badge bg-soft-success text-success';
+                badge.innerHTML = '<i class="feather-globe me-1"></i>Live';
+            }
+        }
+
+        //IMAGE PREVIEW 
+        function updateImagePreview(url) {
+            const container = document.getElementById('imagePreviewContainer');
+            const img       = document.getElementById('imagePreview');
+            if (url && url.startsWith('http')) {
+                img.src = url;
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        //PRICE PREVIEW 
+        function updatePricePreview() {
+            const price    = parseFloat(document.querySelector('[name="Product.Price"]').value) || 0;
+            const discount = parseInt(document.getElementById('discountInput').value) || 0;
+            const preview  = document.getElementById('pricePreview');
+            if (price > 0 && discount > 0) {
+                document.getElementById('discountedPriceDisplay').textContent = 'R ' + (price * (1 - discount / 100)).toFixed(2);
+                document.getElementById('originalPriceDisplay').textContent   = 'R ' + price.toFixed(2);
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        document.querySelector('[name="Product.Price"]').addEventListener('input', updatePricePreview);
+        document.getElementById('discountInput').addEventListener('input', updatePricePreview);
+        updatePricePreview();
+
+        // SHOE SIZE TOGGLE 
+        const categorySelect = document.getElementById('categorySelect');
+
+        function toggleSizePanels(clearInactive) {
+            const isShoes = categorySelect.value === 'Shoes';
+            document.getElementById('clothingSizes').style.display = isShoes ? 'none' : '';
+            document.getElementById('shoeSizes').style.display     = isShoes ? ''     : 'none';
+
+            if (clearInactive) {
+                const panelToClear = isShoes ? 'clothingSizes' : 'shoeSizes';
+                document.getElementById(panelToClear)
+                        .querySelectorAll('input[type="checkbox"]')
+                        .forEach(cb => cb.checked = false);
+            }
+        }
+
+        categorySelect.addEventListener('change', () => toggleSizePanels(true));
+        toggleSizePanels(false); // initial load — preserve saved checkboxes
+    </script>
+}
+
+@functions {
+    string ResolveHex(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "#cccccc";
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["white"] = "#FFFFFF",
+            ["black"] = "#1A1A1A",
+            ["grey"] = "#808080",
+            ["gray"] = "#808080",
+            ["charcoal"] = "#36454F",
+            ["cream"] = "#FFFDD0",
+            ["ivory"] = "#FFFFF0",
+            ["beige"] = "#F5F5DC",
+            ["sand"] = "#C2B280",
+            ["off-white"] = "#FAF9F6",
+            ["stone"] = "#928E85",
+            ["slate"] = "#708090",
+            ["navy"] = "#1B2A4A",
+            ["blue"] = "#4A90D9",
+            ["denim"] = "#1560BD",
+            ["cobalt"] = "#0047AB",
+            ["electric"] = "#0088CC",
+            ["sky"] = "#87CEEB",
+            ["olive"] = "#6B7C45",
+            ["sage"] = "#87AE73",
+            ["khaki"] = "#C3B091",
+            ["forest"] = "#228B22",
+            ["mint"] = "#98FF98",
+            ["green"] = "#4CAF50",
+            ["army"] = "#4B5320",
+            ["camel"] = "#C19A6B",
+            ["tan"] = "#D2B48C",
+            ["brown"] = "#8B4513",
+            ["rust"] = "#B7410E",
+            ["terracotta"] = "#E2725B",
+            ["earth"] = "#A0785A",
+            ["chocolate"] = "#7B3F00",
+            ["taupe"] = "#483C32",
+            ["red"] = "#CC2936",
+            ["burgundy"] = "#800020",
+            ["maroon"] = "#800000",
+            ["pink"] = "#FFC0CB",
+            ["blush"] = "#FADADD",
+            ["coral"] = "#FF6B6B",
+            ["rose"] = "#FF007F",
+            ["yellow"] = "#FFD700",
+            ["mustard"] = "#FFDB58",
+            ["orange"] = "#FF8C00",
+            ["amber"] = "#FFBF00",
+            ["purple"] = "#6A0DAD",
+            ["lavender"] = "#E6E6FA",
+            ["lilac"] = "#C8A2C8",
+            ["plum"] = "#8E4585",
+            ["silver"] = "#C0C0C0",
+            ["gold"] = "#FFD700",
+            ["bronze"] = "#CD7F32",
+            ["copper"] = "#B87333",
+        };
+        var key = value.Trim().ToLower().Replace(" ", "-");
+        return map.TryGetValue(key, out var hex) ? hex
+             : System.Text.RegularExpressions.Regex.IsMatch(value, @"^#[0-9A-Fa-f]{6}$") ? value
+             : "#cccccc";
+    }
+}

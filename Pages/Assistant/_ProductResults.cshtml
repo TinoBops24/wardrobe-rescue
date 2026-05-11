@@ -1,0 +1,185 @@
+﻿@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant.IndexModel
+
+@if (Model.RecommendedProducts.Any())
+{
+    <div class="row g-3 mt-2">
+        @foreach (var scoredProduct in Model.RecommendedProducts)
+        {
+            // Serialise sizes as a JSON array and encode single quotes inside it so
+            // the value is safe inside a single-quoted HTML attribute.
+            // This avoids Razor double-quote encoding (&quot;) which breaks JSON.parse.
+            var sizesJson = System.Text.Json.JsonSerializer.Serialize(
+            scoredProduct.Product.Sizes ?? new List<string>())
+            .Replace("'", "\\'");
+
+            <div class="col-12 col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                    <div class="d-flex p-3 gap-3 align-items-start">
+                        <img src="@(string.IsNullOrEmpty(scoredProduct.Product.ImageUrl) ? "/porto/img/products/product-grey-1.jpg" : scoredProduct.Product.ImageUrl)"
+                             alt="@scoredProduct.Product.Name"
+                             class="rounded flex-shrink-0"
+                             style="width:90px; height:110px; object-fit:cover; background:#f8f9fa;">
+
+                        <div class="flex-grow-1 min-width-0">
+                            <div class="d-flex align-items-start gap-2 mb-1">
+                                <h6 class="mb-0 text-dark fw-bold flex-grow-1"
+                                    style="font-size:0.9rem; line-height:1.3;">
+                                    @scoredProduct.Product.Name
+                                </h6>
+                                <span class="badge bg-success rounded-pill flex-shrink-0"
+                                      style="font-size:0.7rem; white-space:nowrap;">
+                                    @scoredProduct.Score% Match
+                                </span>
+                            </div>
+                            <div class="text-muted small mb-2">R @scoredProduct.Product.Price.ToString("N0")</div>
+                            <ul class="mb-0 ps-3 text-muted" style="font-size:0.75rem;">
+                                @foreach (var reason in scoredProduct.Reasons)
+                                {
+                                    <li>@reason</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-white border-top-0 pt-0 pb-3 px-3">
+                        <button type="button"
+                                class="btn btn-outline-dark btn-sm w-100 rounded-pill wr-open-size-picker"
+                                data-product-id="@scoredProduct.Product.Id"
+                                data-product-name="@scoredProduct.Product.Name"
+                                data-product-sizes='@Html.Raw(sizesJson)'>
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Single reusable size picker modal -->
+    <div class="modal fade" id="sizPickerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content rounded-3 border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title fw-bold">Select a Size</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <p class="text-muted small mb-3" id="sizePickerProductName"></p>
+                    <div id="sizePickerOptions" class="d-flex flex-wrap gap-2"></div>
+                    <div id="sizePickerNoSizes" class="d-none text-muted small">
+                        One size fits all — no size selection needed.
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button"
+                            class="btn btn-dark btn-sm w-100 rounded-pill"
+                            id="sizePickerConfirm"
+                            disabled>
+                        <i class="fas fa-shopping-bag me-1"></i> Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var selectedProductId = null;
+            var selectedSize = null;
+
+            document.querySelectorAll('.wr-open-size-picker').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    selectedProductId = this.dataset.productId;
+                    selectedSize = null;
+
+                    document.getElementById('sizePickerProductName').textContent = this.dataset.productName;
+                    document.getElementById('sizePickerConfirm').disabled = true;
+
+                    var sizes = [];
+                    try { sizes = JSON.parse(this.dataset.productSizes); } catch (e) {
+                        console.error('Size parse failed:', this.dataset.productSizes, e);
+                    }
+
+                    var optionsEl = document.getElementById('sizePickerOptions');
+                    var noSizesEl = document.getElementById('sizePickerNoSizes');
+                    optionsEl.innerHTML = '';
+
+                    if (sizes.length === 0) {
+                        optionsEl.classList.add('d-none');
+                        noSizesEl.classList.remove('d-none');
+                        selectedSize = '';
+                        document.getElementById('sizePickerConfirm').disabled = false;
+                    } else {
+                        noSizesEl.classList.add('d-none');
+                        optionsEl.classList.remove('d-none');
+                        sizes.forEach(function (size) {
+                            var sizeBtn = document.createElement('button');
+                            sizeBtn.type = 'button';
+                            sizeBtn.className = 'btn btn-outline-secondary btn-sm size-opt';
+                            sizeBtn.style.minWidth = '48px';
+                            sizeBtn.textContent = size;
+                            sizeBtn.addEventListener('click', function () {
+                                document.querySelectorAll('.size-opt').forEach(function (b) {
+                                    b.classList.remove('btn-dark');
+                                    b.classList.add('btn-outline-secondary');
+                                });
+                                this.classList.remove('btn-outline-secondary');
+                                this.classList.add('btn-dark');
+                                selectedSize = size;
+                                document.getElementById('sizePickerConfirm').disabled = false;
+                            });
+                            optionsEl.appendChild(sizeBtn);
+                        });
+                    }
+
+                    bootstrap.Modal.getOrCreateInstance(
+                        document.getElementById('sizPickerModal')
+                    ).show();
+                });
+            });
+
+            document.getElementById('sizePickerConfirm').addEventListener('click', function () {
+                if (selectedProductId === null || selectedSize === null) return;
+
+                var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (!tokenInput) {
+                    alert('Page token missing — please refresh and try again.');
+                    return;
+                }
+
+                var confirmBtn = this;
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin me-1"></i> Adding...';
+
+                var formData = new FormData();
+                formData.append('productId', selectedProductId);
+                formData.append('selectedSize', selectedSize);
+                formData.append('__RequestVerificationToken', tokenInput.value);
+
+                fetch('?handler=AddProduct', { method: 'POST', body: formData })
+                    .then(function (r) {
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        return r.json();
+                    })
+                    .then(function (data) {
+                        bootstrap.Modal.getOrCreateInstance(
+                            document.getElementById('sizPickerModal')
+                        ).hide();
+                        if (data.success) {
+                            var badge = document.getElementById('nav-cart-count');
+                            if (badge) badge.textContent = data.cartCount;
+                            if (typeof showToast === 'function') showToast(data.message);
+                        }
+                    })
+                    .catch(function (err) {
+                        console.error('AddProduct failed:', err);
+                        if (typeof showToast === 'function') showToast('Could not add to cart. Please try again.', 'fa-circle-exclamation');
+                    })
+                    .finally(function () {
+                        confirmBtn.disabled = false;
+                        confirmBtn.innerHTML = '<i class="fas fa-shopping-bag me-1"></i> Confirm';
+                    });
+            });
+        })();
+    </script>
+}

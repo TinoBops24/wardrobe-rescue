@@ -1,0 +1,182 @@
+﻿@page
+@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div role="main" class="main shop py-4">
+    <div class="container py-4">
+
+        @* Global service-level error  *@
+        @if (TempData["GlobalError"] != null)
+        {
+            <div class="row justify-content-center mb-3">
+                <div class="col-12 col-lg-6">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>@TempData["GlobalError"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-6">
+
+                @* Tab navigation  *@
+                <ul class="nav nav-tabs nav-tabs-default mb-4" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link font-weight-bold text-3"
+                           asp-page="/Account/Login">
+                            Sign In
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active font-weight-bold text-3"
+                           href="#">
+                            Register
+                        </a>
+                    </li>
+                </ul>
+
+                @* Register form *@
+                <form method="post"
+                      id="frmSignUp"
+                      class="needs-validation"
+                      novalidate>
+                    @Html.AntiForgeryToken()
+
+                    @if (Model.RegisterError != null)
+                    {
+                        <div class="alert alert-danger py-2 text-2" role="alert">
+                            <i class="fas fa-exclamation-circle me-1"></i>@Model.RegisterError
+                        </div>
+                    }
+
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label class="form-label text-color-dark text-3" for="FirstName">
+                                First Name <span class="text-color-danger">*</span>
+                            </label>
+                            <input asp-for="FirstName"
+                                   type="text"
+                                   class="form-control form-control-lg text-4"
+                                   id="FirstName"
+                                   placeholder="Jane"
+                                   autocomplete="given-name"
+                                   required />
+                            <span asp-validation-for="FirstName" class="text-color-danger text-2"></span>
+                        </div>
+                        <div class="form-group col-6">
+                            <label class="form-label text-color-dark text-3" for="LastName">
+                                Last Name <span class="text-color-danger">*</span>
+                            </label>
+                            <input asp-for="LastName"
+                                   type="text"
+                                   class="form-control form-control-lg text-4"
+                                   id="LastName"
+                                   placeholder="Smith"
+                                   autocomplete="family-name"
+                                   required />
+                            <span asp-validation-for="LastName" class="text-color-danger text-2"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col">
+                            <label class="form-label text-color-dark text-3" for="Email">
+                                Email Address <span class="text-color-danger">*</span>
+                            </label>
+                            <input asp-for="Email"
+                                   type="email"
+                                   class="form-control form-control-lg text-4"
+                                   id="Email"
+                                   placeholder="you@example.com"
+                                   autocomplete="email"
+                                   required />
+                            <span asp-validation-for="Email" class="text-color-danger text-2"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col">
+                            <label class="form-label text-color-dark text-3" for="Password">
+                                Password <span class="text-color-danger">*</span>
+                            </label>
+                            <input asp-for="Password"
+                                   type="password"
+                                   class="form-control form-control-lg text-4"
+                                   id="Password"
+                                   placeholder="Min. 6 characters"
+                                   autocomplete="new-password"
+                                   minlength="6"
+                                   required />
+                            <span asp-validation-for="Password" class="text-color-danger text-2"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col">
+                            <label class="form-label text-color-dark text-3" for="ConfirmPassword">
+                                Confirm Password <span class="text-color-danger">*</span>
+                            </label>
+                            <input asp-for="ConfirmPassword"
+                                   type="password"
+                                   class="form-control form-control-lg text-4"
+                                   id="ConfirmPassword"
+                                   placeholder="Repeat password"
+                                   autocomplete="new-password"
+                                   required />
+                            <span asp-validation-for="ConfirmPassword" class="text-color-danger text-2"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col">
+                            <p class="text-2 mb-2">
+                                Your personal data will be used to support your experience throughout this
+                                website, to manage access to your account, and for other purposes described
+                                in our <a href="#" class="text-decoration-none">privacy policy</a>.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col">
+                            <button type="submit"
+                                    class="btn btn-dark btn-modern w-100 text-uppercase rounded-0 font-weight-bold text-3 py-3">
+                                Create Account
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <p class="text-center text-3 mt-3">
+                    Already have an account?
+                    <a asp-page="/Account/Login"
+                       class="text-decoration-none font-weight-semibold">
+                        Sign in here
+                    </a>
+                </p>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            'use strict';
+            document.querySelectorAll('.needs-validation').forEach(form => {
+                form.addEventListener('submit', e => {
+                    if (!form.checkValidity()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                });
+            });
+        })();
+    </script>
+}

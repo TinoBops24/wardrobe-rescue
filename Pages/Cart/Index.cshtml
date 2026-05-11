@@ -1,0 +1,327 @@
+﻿@page
+@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.Cart.IndexModel
+@{
+    ViewData["Title"] = "Shopping Cart";
+}
+
+<div role="main" class="main shop pb-4">
+    <div class="container">
+
+        <!-- ── Progress Steps ── -->
+        <div class="row">
+            <div class="col">
+                <ul class="breadcrumb font-weight-bold text-6 justify-content-center my-5">
+                    <li class="text-transform-none me-2">
+                        <a asp-page="/Cart/Index"
+                           class="text-decoration-none text-color-primary">Shopping Cart</a>
+                    </li>
+                    <li class="text-transform-none text-color-grey-lighten me-2">
+                        <a asp-page="/Checkout/Index"
+                           class="text-decoration-none text-color-grey-lighten text-color-hover-primary">Checkout</a>
+                    </li>
+                    <li class="text-transform-none text-color-grey-lighten">
+                        <a asp-page="/Orders/Complete"
+                           class="text-decoration-none text-color-grey-lighten text-color-hover-primary">Order Complete</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        @if (TempData["CartSuccess"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["CartSuccess"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (!Model.CartItems.Any())
+        {
+            <div class="row pb-4 mb-5">
+                <div class="col text-center py-5">
+                    <i class="fas fa-shopping-bag fa-4x text-muted mb-4"></i>
+                    <h3 class="font-weight-bold">Your cart is empty</h3>
+                    <p class="text-muted mb-4">Looks like you haven't added anything yet.</p>
+                    <a asp-page="/Products/Index" class="btn btn-dark btn-modern text-uppercase px-5 py-3">
+                        Browse Products
+                    </a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row pb-4 mb-5">
+
+                <!-- Cart Table -->
+                <div class="col-lg-8 mb-5 mb-lg-0">
+                    <div class="table-responsive">
+                        <table class="shop_table cart">
+                            <thead>
+                                <tr class="text-color-dark">
+                                    <th class="product-thumbnail" width="15%">&nbsp;</th>
+                                    <th class="product-name text-uppercase" width="30%">Product</th>
+                                    <th class="product-price text-uppercase" width="15%">Price</th>
+                                    <th class="product-quantity text-uppercase" width="20%">Quantity</th>
+                                    <th class="product-subtotal text-uppercase text-end" width="20%">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @foreach (var item in Model.CartItems)
+                                {
+                                    var lineTotal = item.Price * item.Quantity;
+                                    <tr class="cart_table_item">
+
+                                        <!-- Thumbnail + Remove -->
+                                        <td class="product-thumbnail">
+                                            <div class="product-thumbnail-wrapper">
+                                                <form method="post" asp-page-handler="Remove" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="productId" value="@item.ProductId" />
+                                                    <button type="submit"
+                                                            class="product-thumbnail-remove border-0 bg-transparent p-0"
+                                                            title="Remove Product">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </form>
+                                                <a asp-page="/Products/Details"
+                                                   asp-route-id="@item.ProductId"
+                                                   class="product-thumbnail-image"
+                                                   title="@item.ProductName">
+                                                    <img width="90" height="90"
+                                                         alt="@item.ProductName"
+                                                         class="img-fluid"
+                                                         src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/porto/img/products/product-grey-1.jpg" : item.ImageUrl)"
+                                                         style="object-fit:contain;background:#fff;border-radius:4px;">
+                                                </a>
+                                            </div>
+                                        </td>
+
+                                        <!-- Product Name -->
+                                        <td class="product-name">
+                                            <a asp-page="/Products/Details"
+                                               asp-route-id="@item.ProductId"
+                                               class="font-weight-semi-bold text-color-dark text-color-hover-primary text-decoration-none">
+                                                @item.ProductName
+                                            </a>
+                                            @if (!string.IsNullOrEmpty(item.SelectedSize))
+                                            {
+                                                <br />
+                                                <small class="text-muted">Size: @item.SelectedSize</small>
+                                            }
+                                        </td>
+
+                                        <!-- Unit Price -->
+                                        <td class="product-price">
+                                            <span class="amount font-weight-medium text-color-grey">
+                                                R @(item.Price.ToString("N2"))
+                                            </span>
+                                        </td>
+
+                                        <!-- Quantity -->
+                                        <td class="product-quantity">
+                                            <form method="post" asp-page-handler="Update" class="d-flex align-items-center gap-2">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                                <div class="quantity float-none m-0">
+                                                    <input type="button"
+                                                           class="minus text-color-hover-light bg-color-hover-primary border-color-hover-primary"
+                                                           value="-">
+                                                    <input type="text"
+                                                           class="input-text qty text"
+                                                           title="Qty"
+                                                           value="@item.Quantity"
+                                                           name="quantity"
+                                                           min="1"
+                                                           step="1">
+                                                    <input type="button"
+                                                           class="plus text-color-hover-light bg-color-hover-primary border-color-hover-primary"
+                                                           value="+">
+                                                </div>
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-secondary text-1 py-1 px-2 ms-1"
+                                                        title="Update">
+                                                    <i class="fas fa-sync-alt"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+
+                                        <!-- Line Subtotal -->
+                                        <td class="product-subtotal text-end">
+                                            <span class="amount text-color-dark font-weight-bold text-4">
+                                                R @(lineTotal.ToString("N2"))
+                                            </span>
+                                        </td>
+
+                                    </tr>
+                                }
+
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="row justify-content-between mx-0">
+                                            <div class="col-md-auto px-0">
+                                                <a asp-page="/Products/Index"
+                                                   class="btn btn-light btn-modern text-color-dark bg-color-grey text-color-hover-light bg-color-hover-primary text-uppercase text-3 font-weight-bold border-0 border-radius-0 btn-px-4 py-3">
+                                                    <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Cart Totals Sidebar -->
+                <div class="col-lg-4 position-relative">
+                    <div class="card border-width-3 border-radius-0 border-color-hover-dark"
+                         data-plugin-sticky
+                         data-plugin-options="{'minWidth': 991, 'containerSelector': '.row', 'padding': {'top': 85}}">
+                        <div class="card-body">
+                            <h4 class="font-weight-bold text-uppercase text-4 mb-3">Cart Totals</h4>
+                            <table class="shop_table cart-totals mb-4">
+                                <tbody>
+                                    <tr class="cart-subtotal">
+                                        <td class="border-top-0">
+                                            <strong class="text-color-dark">Subtotal</strong>
+                                        </td>
+                                        <td class="border-top-0 text-end">
+                                            <strong>
+                                                <span class="amount font-weight-medium">R @(Model.CartSubtotal.ToString("N2"))</span>
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                    <tr class="shipping">
+                                        <td colspan="2">
+                                            <strong class="d-block text-color-dark mb-1">Shipping</strong>
+                                            <span class="text-color-grey text-2">Calculated at checkout</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="total">
+                                        <td>
+                                            <strong class="text-color-dark text-3-5">Total</strong>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong class="text-color-dark">
+                                                <span class="amount text-color-dark text-5">R @(Model.CartSubtotal.ToString("N2"))</span>
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <a asp-page="/Checkout/Index"
+                               class="btn btn-dark btn-modern w-100 text-uppercase bg-color-hover-primary border-color-hover-primary border-radius-0 text-3 py-3">
+                                Proceed to Checkout <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        }
+
+        <!-- ── People Also Bought ── -->
+        @if (Model.SuggestedProducts.Any())
+        {
+            <div class="row">
+                <div class="col">
+                    <h4 class="font-weight-semibold text-4 mb-3">PEOPLE ALSO BOUGHT</h4>
+                    <hr class="mt-0">
+                    <div class="products row">
+                        <div class="col">
+                            <div class="owl-carousel owl-theme nav-style-1 nav-outside nav-dark mb-0"
+                                 data-plugin-options="{'loop': false, 'autoplay': false, 'items': 4, 'nav': true, 'dots': false, 'margin': 20, 'autoplayHoverPause': true, 'autoHeight': true, 'stagePadding': '75', 'navVerticalOffset': '50px'}">
+
+                                @foreach (var product in Model.SuggestedProducts)
+                                {
+                                    <div class="product mb-0">
+                                        <div class="product-thumb-info border-0 mb-3">
+
+                                            @if (product.IsNew || product.DiscountPercentage > 0)
+                                            {
+                                                <div class="product-thumb-info-badges-wrapper">
+                                                    @if (product.IsNew)
+                                                    {
+                                                        <span class="badge badge-ecommerce text-bg-success">NEW</span>
+                                                    }
+                                                    @if (product.DiscountPercentage > 0)
+                                                    {
+                                                        <span class="badge badge-ecommerce text-bg-danger">@(product.DiscountPercentage)% OFF</span>
+                                                    }
+                                                </div>
+                                            }
+
+                                            <div class="addtocart-btn-wrapper">
+                                                <a asp-page="/Products/Details"
+                                                   asp-route-id="@product.Id"
+                                                   class="text-decoration-none addtocart-btn"
+                                                   title="Add to Cart">
+                                                    <i class="icons icon-bag"></i>
+                                                </a>
+                                            </div>
+
+                                            <a asp-page="/Products/Details" asp-route-id="@product.Id">
+                                                <div class="product-thumb-info-image bg-white border">
+                                                    <img alt="@product.Name"
+                                                         class="img-fluid"
+                                                         src="@(string.IsNullOrEmpty(product.ImageUrl) ? "/porto/img/products/product-grey-1.jpg" : product.ImageUrl)"
+                                                         style="height:200px;object-fit:contain;width:100%;padding:8px;">
+                                                </div>
+                                            </a>
+
+                                        </div>
+
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <a asp-page="/Products/Index"
+                                                   asp-route-SelectedCategory="@product.Category"
+                                                   class="d-block text-uppercase text-decoration-none text-color-default text-color-hover-primary line-height-1 text-0 mb-1">
+                                                    @product.Category
+                                                </a>
+                                                <h3 class="text-3-5 font-weight-medium font-alternative text-transform-none line-height-3 mb-0">
+                                                    <a asp-page="/Products/Details"
+                                                       asp-route-id="@product.Id"
+                                                       class="text-color-dark text-color-hover-primary">
+                                                        @product.Name
+                                                    </a>
+                                                </h3>
+                                            </div>
+                                            <a href="#"
+                                               class="text-decoration-none text-color-default text-color-hover-dark text-4">
+                                                <i class="far fa-heart"></i>
+                                            </a>
+                                        </div>
+
+                                        <div title="Rated @product.Rating out of 5">
+                                            <input type="text" class="d-none"
+                                                   value="@product.Rating"
+                                                   data-plugin-star-rating
+                                                   data-plugin-options="{'displayOnly': true, 'color': 'default', 'size':'xs'}">
+                                        </div>
+
+                                        <p class="price text-5 mb-3">
+                                            @if (product.DiscountPrice.HasValue)
+                                            {
+                                                <span class="sale text-color-dark font-weight-semi-bold">R @(product.DiscountPrice.Value.ToString("N2"))</span>
+                                                <span class="amount text-decoration-line-through text-muted ms-1">R @(product.Price.ToString("N2"))</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="sale text-color-dark font-weight-semi-bold">R @(product.Price.ToString("N2"))</span>
+                                            }
+                                        </p>
+
+                                    </div>
+                                }
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>

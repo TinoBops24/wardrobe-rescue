@@ -1,0 +1,147 @@
+﻿@page
+@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "Sign In";
+}
+
+<div role="main" class="main shop py-4">
+    <div class="container py-4">
+
+        @* Global service-level error *@
+        @if (TempData["GlobalError"] != null)
+        {
+            <div class="row justify-content-center mb-3">
+                <div class="col-12 col-lg-6">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>@TempData["GlobalError"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-6">
+
+                @* Tab navigation  *@
+                <ul class="nav nav-tabs nav-tabs-default mb-4" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active font-weight-bold text-3"
+                           href="#">
+                            Sign In
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link font-weight-bold text-3"
+                           asp-page="/Account/Register">
+                            Register
+                        </a>
+                    </li>
+                </ul>
+
+                @* Sign In form *@
+                <form method="post"
+                      asp-route-returnUrl="@Model.ReturnUrl"
+                      id="frmSignIn"
+                      class="needs-validation"
+                      novalidate>
+                    @Html.AntiForgeryToken()
+
+                    @if (Model.LoginError != null)
+                    {
+                        <div class="alert alert-danger py-2 text-2" role="alert">
+                            <i class="fas fa-exclamation-circle me-1"></i>@Model.LoginError
+                        </div>
+                    }
+
+                    <div class="row">
+                        <div class="form-group col">
+                            <label class="form-label text-color-dark text-3" for="Email">
+                                Email Address <span class="text-color-danger">*</span>
+                            </label>
+                            <input asp-for="Email"
+                                   type="email"
+                                   class="form-control form-control-lg text-4"
+                                   id="Email"
+                                   placeholder="you@example.com"
+                                   autocomplete="email"
+                                   required />
+                            <span asp-validation-for="Email" class="text-color-danger text-2"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col">
+                            <label class="form-label text-color-dark text-3" for="Password">
+                                Password <span class="text-color-danger">*</span>
+                            </label>
+                            <input asp-for="Password"
+                                   type="password"
+                                   class="form-control form-control-lg text-4"
+                                   id="Password"
+                                   placeholder="••••••••"
+                                   autocomplete="current-password"
+                                   required />
+                            <span asp-validation-for="Password" class="text-color-danger text-2"></span>
+                        </div>
+                    </div>
+
+                    <div class="row justify-content-between">
+                        <div class="form-group col-md-auto">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox"
+                                       class="custom-control-input"
+                                       id="rememberMe"
+                                       name="rememberMe" />
+                                <label class="form-label custom-control-label cur-pointer text-2" for="rememberMe">
+                                    Remember Me
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-auto">
+                            <a href="#"
+                               class="text-decoration-none text-color-dark text-color-hover-primary font-weight-semibold text-2">
+                                Forgot Password?
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col">
+                            <button type="submit"
+                                    class="btn btn-dark btn-modern w-100 text-uppercase rounded-0 font-weight-bold text-3 py-3">
+                                Sign In
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <p class="text-center text-3 mt-3">
+                    Don't have an account?
+                    <a asp-page="/Account/Register"
+                       class="text-decoration-none font-weight-semibold">
+                        Create one here
+                    </a>
+                </p>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            'use strict';
+            document.querySelectorAll('.needs-validation').forEach(form => {
+                form.addEventListener('submit', e => {
+                    if (!form.checkValidity()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                });
+            });
+        })();
+    </script>
+}

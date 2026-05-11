@@ -1,0 +1,410 @@
+﻿@page "{id}"
+@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.Products.DetailsModel
+@{
+    ViewData["Title"] = Model.Product?.Name ?? "Product";
+    var p = Model.Product!;
+}
+
+<div role="main" class="main shop pt-4">
+    <div class="container">
+
+        @if (TempData["CartSuccess"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["CartSuccess"]
+                <a asp-page="/Cart/Index" class="alert-link ms-2">View Cart →</a>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["WishlistSuccess"] != null)
+        {
+            <div class="alert alert-info alert-dismissible fade show mb-3" role="alert">
+                <i class="fas fa-heart me-2"></i>@TempData["WishlistSuccess"]
+                <a asp-page="/Account/Wishlist" class="alert-link ms-2">View Wishlist →</a>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col">
+                <ul class="breadcrumb breadcrumb-style-2 d-block text-4 mb-4">
+                    <li>
+                        <a asp-page="/Index"
+                           class="text-color-default text-color-hover-primary text-decoration-none">Home</a>
+                    </li>
+                    <li>
+                        <a asp-page="/Products/Index"
+                           class="text-color-default text-color-hover-primary text-decoration-none">Products</a>
+                    </li>
+                    <li>
+                        <a asp-page="/Products/Index"
+                           asp-route-SelectedCategory="@p.Category"
+                           class="text-color-default text-color-hover-primary text-decoration-none">
+                            @p.Category
+                        </a>
+                    </li>
+                    <li>@p.Name</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-5 mb-5 mb-md-0">
+                <div class="bg-white border rounded d-flex align-items-center justify-content-center overflow-hidden" style="height:480px;">
+                    <img alt="@p.Name"
+                         class="img-fluid"
+                         src="@(string.IsNullOrEmpty(p.ImageUrl) ? "/porto/img/products/product-grey-1.jpg" : p.ImageUrl)"
+                         style="max-height:460px; max-width:100%; object-fit:contain; padding:16px;"
+                         onerror="this.src='/porto/img/products/product-grey-1.jpg'">
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="summary entry-summary">
+
+                    <h1 class="mb-0 font-weight-bold text-7">@p.Name</h1>
+
+                    <div class="pb-0 clearfix d-flex align-items-center">
+                        <div title="Rated @p.Rating out of 5" class="float-start">
+                            <input type="text" class="d-none"
+                                   value="@p.Rating"
+                                   data-plugin-star-rating
+                                   data-plugin-options="{'displayOnly': true, 'color': 'primary', 'size':'xs'}">
+                        </div>
+                        <div class="review-num ms-2">
+                            <a href="#description"
+                               class="text-decoration-none text-color-default text-color-hover-primary"
+                               data-hash data-hash-offset="0">
+                                @p.Rating / 5.0
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="divider divider-small">
+                        <hr class="bg-color-grey-400">
+                    </div>
+
+                    <p class="price mb-3">
+                        @if (p.DiscountPrice.HasValue)
+                        {
+                            <span class="sale text-color-dark">R @(p.DiscountPrice.Value.ToString("N0"))</span>
+                            <span class="amount text-decoration-line-through text-muted ms-1">R @(p.Price.ToString("N0"))</span>
+                        }
+                        else
+                        {
+                            <span class="sale text-color-dark">R @(p.Price.ToString("N0"))</span>
+                        }
+                    </p>
+
+                    @if (!string.IsNullOrEmpty(p.Description))
+                    {
+                        <p class="text-3-5 mb-3">@p.Description</p>
+                    }
+
+                    <ul class="list list-unstyled text-2">
+                        <li class="mb-0">
+                            AVAILABILITY:
+                            @if (p.StockLevel > 0)
+                            {
+                                <strong class="text-success">IN STOCK</strong>
+                            }
+                            else
+                            {
+                                <strong class="text-danger">OUT OF STOCK</strong>
+                            }
+                        </li>
+                        <li class="mb-0">CATEGORY: <strong class="text-color-dark">@p.Category</strong></li>
+                        @if (!string.IsNullOrEmpty(p.Gender))
+                        {
+                            <li class="mb-0">GENDER: <strong class="text-color-dark">@p.Gender</strong></li>
+                        }
+                    </ul>
+
+                    <form method="post"
+                          asp-page-handler="AddToCart"
+                          asp-route-id="@p.Id">
+                        @Html.AntiForgeryToken()
+
+                        @if (p.Sizes.Any())
+                        {
+                            <table class="table table-borderless" style="max-width:300px;">
+                                <tbody>
+                                    <tr>
+                                        <td class="align-middle text-2 px-0 py-2">SIZE:</td>
+                                        <td class="px-0 py-2">
+                                            <div class="custom-select-1">
+                                                <select name="SelectedSize"
+                                                        class="form-control form-select text-1 h-auto py-2" required>
+                                                    <option value="">PLEASE CHOOSE</option>
+                                                    @foreach (var size in p.Sizes)
+                                                    {
+                                                        <option value="@size">@size</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <hr>
+                        }
+
+                        <div class="quantity quantity-lg">
+                            <input type="button"
+                                   class="minus text-color-hover-light bg-color-hover-primary border-color-hover-primary"
+                                   value="-">
+                            <input type="text"
+                                   class="input-text qty text"
+                                   title="Qty"
+                                   value="1"
+                                   name="Quantity"
+                                   min="1"
+                                   step="1">
+                            <input type="button"
+                                   class="plus text-color-hover-light bg-color-hover-primary border-color-hover-primary"
+                                   value="+">
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-dark btn-modern text-uppercase bg-color-hover-primary border-color-hover-primary"
+                                @(p.StockLevel <= 0 ? "disabled" : "")>
+                            Add to Cart
+                        </button>
+
+                        <hr>
+                    </form>
+
+                    <div class="d-flex align-items-center">
+                        <ul class="social-icons social-icons-medium social-icons-clean-with-border social-icons-clean-with-border-border-grey social-icons-clean-with-border-icon-dark me-3 mb-0">
+                            <li class="social-icons-facebook">
+                                <a href="https://www.facebook.com/sharer.php?u=@(Uri.EscapeDataString(HttpContext.Request.Path))"
+                                   target="_blank"
+                                   data-bs-toggle="tooltip" data-bs-animation="false"
+                                   data-bs-placement="top" title="Share on Facebook">
+                                    <i class="fab fa-facebook-f"></i>
+                                </a>
+                            </li>
+                            <li class="social-icons-x">
+                                <a href="https://twitter.com/share?url=@(Uri.EscapeDataString(HttpContext.Request.Path))"
+                                   target="_blank"
+                                   data-bs-toggle="tooltip" data-bs-animation="false"
+                                   data-bs-placement="top" title="Share on X">
+                                    <i class="fab fa-x-twitter"></i>
+                                </a>
+                            </li>
+                        </ul>
+
+                        @* ── Wishlist toggle ── *@
+                        <form method="post" asp-page-handler="ToggleWishlist" asp-route-id="@p.Id">
+                            @Html.AntiForgeryToken()
+                            <button type="submit"
+                                    class="d-flex align-items-center btn btn-link p-0 text-decoration-none font-weight-semibold text-2"
+                                    style="color: @(Model.IsWishlisted ? "#e74c3c" : "inherit");">
+                                <i class="@(Model.IsWishlisted ? "fas" : "far") fa-heart me-1"></i>
+                                @(Model.IsWishlisted ? "SAVED TO WISHLIST" : "SAVE TO WISHLIST")
+                            </button>
+                        </form>
+                    </div>
+
+                    @if (p.Tags.Any())
+                    {
+                        <div class="mt-3">
+                            <span class="text-2 text-color-default font-weight-semibold me-1">TAGS:</span>
+                            @foreach (var tag in p.Tags)
+                            {
+                                <a asp-page="/Products/Index" asp-route-SearchQuery="@tag">
+                                    <span class="badge badge-dark badge-sm rounded-pill text-uppercase px-2 py-1 me-1">@tag</span>
+                                </a>
+                            }
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4 mt-4">
+            <div class="col">
+                <div id="description" class="tabs tabs-simple tabs-simple-full-width-line tabs-product tabs-dark mb-2">
+                    <ul class="nav nav-tabs justify-content-start">
+                        <li class="nav-item">
+                            <a class="nav-link active font-weight-bold text-3 text-uppercase py-2 px-3"
+                               href="#productDescription" data-bs-toggle="tab">Description</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link font-weight-bold text-3 text-uppercase py-2 px-3"
+                               href="#productInfo" data-bs-toggle="tab">Additional Information</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content p-0">
+
+                        <div class="tab-pane px-0 py-3 active" id="productDescription">
+                            @if (!string.IsNullOrEmpty(p.Description))
+                            {
+                                <p>@p.Description</p>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No description available.</p>
+                            }
+                        </div>
+
+                        <div class="tab-pane px-0 py-3" id="productInfo">
+                            <table class="table table-striped m-0" style="max-width:400px;">
+                                <tbody>
+                                    <tr>
+                                        <th class="border-top-0">Category</th>
+                                        <td class="border-top-0">@p.Category</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Gender</th>
+                                        <td>@p.Gender</td>
+                                    </tr>
+                                    @if (p.Sizes.Any())
+                                    {
+                                        <tr>
+                                            <th>Available Sizes</th>
+                                            <td>@string.Join(", ", p.Sizes)</td>
+                                        </tr>
+                                    }
+                                    @if (!string.IsNullOrEmpty(p.DominantColor))
+                                    {
+                                        <tr>
+                                            <th>Colour</th>
+                                            <td>@p.DominantColor</td>
+                                        </tr>
+                                    }
+                                    @if (p.OccasionTags.Any())
+                                    {
+                                        <tr>
+                                            <th>Occasions</th>
+                                            <td>@string.Join(", ", p.OccasionTags)</td>
+                                        </tr>
+                                    }
+                                    <tr>
+                                        <th>Formality</th>
+                                        <td>@p.FormalityScore / 5</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.RelatedProducts.Any())
+        {
+            <div class="row">
+                <div class="col">
+                    <h4 class="font-weight-semibold text-4 mb-3">RELATED PRODUCTS</h4>
+                    <hr class="mt-0">
+                    <div class="products row">
+                        <div class="col">
+                            <div class="owl-carousel owl-theme nav-style-1 nav-outside nav-dark mb-0"
+                                 data-plugin-options="{'loop': false, 'autoplay': false, 'items': 4, 'nav': true, 'dots': false, 'margin': 20, 'autoplayHoverPause': true, 'autoHeight': true, 'stagePadding': '75', 'navVerticalOffset': '50px'}">
+
+                                @foreach (var related in Model.RelatedProducts)
+                                {
+                                    var isRelatedWishlisted = Model.WishlistProductIds.Contains(related.Id);
+
+                                    <div class="product mb-0">
+                                        <div class="product-thumb-info border-0 mb-3">
+
+                                            @if (related.IsNew || related.DiscountPercentage > 0)
+                                            {
+                                                <div class="product-thumb-info-badges-wrapper">
+                                                    @if (related.IsNew)
+                                                    {
+                                                        <span class="badge badge-ecommerce text-bg-success">NEW</span>
+                                                    }
+                                                    @if (related.DiscountPercentage > 0)
+                                                    {
+                                                        <span class="badge badge-ecommerce text-bg-danger">@(related.DiscountPercentage)% OFF</span>
+                                                    }
+                                                </div>
+                                            }
+
+                                            <div class="addtocart-btn-wrapper">
+                                                <a asp-page="/Products/Details"
+                                                   asp-route-id="@related.Id"
+                                                   class="text-decoration-none addtocart-btn"
+                                                   title="View Product">
+                                                    <i class="icons icon-bag"></i>
+                                                </a>
+                                            </div>
+
+                                            <a asp-page="/Products/Details" asp-route-id="@related.Id">
+                                                <div class="product-thumb-info-image bg-white border">
+                                                    <img alt="@related.Name"
+                                                         class="img-fluid"
+                                                         src="@(string.IsNullOrEmpty(related.ImageUrl) ? "/porto/img/products/product-grey-1.jpg" : related.ImageUrl)"
+                                                         style="height:200px;object-fit:contain;width:100%;padding:8px;"
+                                                         onerror="this.src='/porto/img/products/product-grey-1.jpg'">
+                                                </div>
+                                            </a>
+
+                                        </div>
+
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <a asp-page="/Products/Index"
+                                                   asp-route-SelectedCategory="@related.Category"
+                                                   class="d-block text-uppercase text-decoration-none text-color-default text-color-hover-primary line-height-1 text-0 mb-1">
+                                                    @related.Category
+                                                </a>
+                                                <h3 class="text-3-5 font-weight-medium font-alternative text-transform-none line-height-3 mb-0">
+                                                    <a asp-page="/Products/Details"
+                                                       asp-route-id="@related.Id"
+                                                       class="text-color-dark text-color-hover-primary">
+                                                        @related.Name
+                                                    </a>
+                                                </h3>
+                                            </div>
+
+                                            @* ── Related product wishlist toggle ── *@
+                                            <form method="post" asp-page-handler="ToggleWishlist" asp-route-id="@related.Id">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit"
+                                                        class="btn btn-link p-0 text-decoration-none text-4"
+                                                        title="@(isRelatedWishlisted ? "Remove from Wishlist" : "Save to Wishlist")"
+                                                        style="color: @(isRelatedWishlisted ? "#e74c3c" : "inherit");">
+                                                    <i class="@(isRelatedWishlisted ? "fas" : "far") fa-heart"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                        <div title="Rated @related.Rating out of 5">
+                                            <input type="text" class="d-none"
+                                                   value="@related.Rating"
+                                                   data-plugin-star-rating
+                                                   data-plugin-options="{'displayOnly': true, 'color': 'default', 'size':'xs'}">
+                                        </div>
+
+                                        <p class="price text-5 mb-3">
+                                            @if (related.DiscountPrice.HasValue)
+                                            {
+                                                <span class="sale text-color-dark font-weight-semi-bold">R @(related.DiscountPrice.Value.ToString("N0"))</span>
+                                                <span class="amount text-decoration-line-through text-muted ms-1">R @(related.Price.ToString("N0"))</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="sale text-color-dark font-weight-semi-bold">R @(related.Price.ToString("N0"))</span>
+                                            }
+                                        </p>
+
+                                    </div>
+                                }
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>

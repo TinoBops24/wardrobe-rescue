@@ -1,0 +1,326 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no">
+    <title>Access Denied – Wardrobe Rescue</title>
+
+    <link rel="shortcut icon" href="~/porto/img/favicon.ico" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:500,700,900" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/porto/vendor/fontawesome-free/css/all.min.css">
+
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            background-color: #36383f;
+            font-family: "Montserrat", sans-serif;
+        }
+
+        .wr-ad-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .wr-sign {
+            background-color: #f4f4f4;
+            position: relative;
+            width: 80%;
+            min-width: 340px;
+            max-width: 800px;
+            padding: 50px;
+            border: 1px solid #e9ecf0;
+            border-radius: 45px;
+            box-shadow: 5px 5px 10px #000;
+        }
+
+        .wr-hole {
+            width: 20px;
+            height: 20px;
+            position: absolute;
+            border-radius: 50%;
+            background-image: radial-gradient(circle at 99%, #f4f4f4 10%, grey 70%);
+            transform: rotate(45deg);
+        }
+
+        .wr-hole-tl {
+            top: 25px;
+            left: 25px;
+        }
+
+        .wr-hole-tr {
+            top: 25px;
+            right: 25px;
+        }
+
+        .wr-hole-bl {
+            bottom: 25px;
+            left: 25px;
+        }
+
+        .wr-hole-br {
+            bottom: 25px;
+            right: 25px;
+        }
+
+        .wr-sign-header {
+            background-color: #ef5350;
+            padding: 20px;
+            border-radius: 30px 30px 0 0;
+            text-align: center;
+            position: relative;
+        }
+
+            .wr-sign-header h1 {
+                text-transform: uppercase;
+                color: #f4f4f4;
+                font-size: 5.5em;
+                line-height: .9em;
+                letter-spacing: 3px;
+                font-weight: 900;
+                font-family: "Montserrat", sans-serif;
+            }
+
+        .wr-strike {
+            position: absolute;
+            width: 25%;
+            height: 10px;
+            background-color: #fff;
+        }
+
+        .wr-strike-left {
+            top: 115px;
+            left: 80px;
+        }
+
+        .wr-strike-right {
+            top: 115px;
+            right: 80px;
+        }
+
+        .wr-sign-body {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+        }
+
+        .wr-copy {
+            flex-basis: 60%;
+            padding: 20px 10px;
+        }
+
+            .wr-copy h2 {
+                text-align: center;
+                color: #1d1e22;
+                font-size: 3em;
+                text-transform: uppercase;
+                margin: 40px 0;
+                line-height: .9em;
+                font-family: "Montserrat", sans-serif;
+            }
+
+            .wr-copy p {
+                text-align: center;
+                color: #1d1e22;
+                font-size: 20px;
+                line-height: 1.5;
+            }
+
+        .wr-circle {
+            flex-basis: 40%;
+        }
+
+        .wr-sign-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 24px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .wr-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 32px;
+            border-radius: 4px;
+            font-family: "Poppins", sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: opacity .2s;
+        }
+
+            .wr-btn:hover {
+                opacity: .85;
+                text-decoration: none;
+            }
+
+        .wr-btn-home {
+            background-color: #0088cc;
+            color: #fff;
+        }
+
+        .wr-btn-products {
+            background-color: #1e2d3d;
+            color: #fff;
+        }
+
+        .wr-brand {
+            margin-top: 28px;
+            font-family: "Poppins", sans-serif;
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 1px;
+        }
+
+            .wr-brand strong {
+                color: #0088cc;
+            }
+
+        @@media screen and (max-width: 930px) {
+            .wr-sign {
+                font-size: .75rem;
+            }
+        }
+
+        @@media screen and (max-width: 750px) {
+            .wr-sign {
+                font-size: .6rem;
+            }
+
+            .wr-copy h2 {
+                margin: 25px 0;
+            }
+
+            .wr-strike {
+                visibility: hidden;
+            }
+        }
+
+        @@media screen and (max-width: 600px) {
+            .wr-sign {
+                font-size: .4rem;
+                padding: 15px;
+                border-radius: 25px;
+            }
+
+            .wr-sign-header {
+                border-radius: 20px 20px 0 0;
+            }
+
+            .wr-hole {
+                width: 10px;
+                height: 10px;
+            }
+
+            .wr-hole-tl, .wr-hole-tr {
+                top: 8px;
+            }
+
+            .wr-hole-bl, .wr-hole-br {
+                bottom: 8px;
+            }
+
+            .wr-hole-tl, .wr-hole-bl {
+                left: 8px;
+            }
+
+            .wr-hole-tr, .wr-hole-br {
+                right: 8px;
+            }
+        }
+
+        @@media screen and (max-width: 450px) {
+            .wr-sign {
+                font-size: .34rem;
+            }
+
+            .wr-copy h2 {
+                margin: 10px;
+            }
+
+            .wr-copy p {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wr-ad-page">
+
+        <div class="wr-sign">
+
+            <div class="wr-hole wr-hole-tl"></div>
+            <div class="wr-hole wr-hole-tr"></div>
+            <div class="wr-hole wr-hole-bl"></div>
+            <div class="wr-hole wr-hole-br"></div>
+
+            <header class="wr-sign-header">
+                <h1>403 Forbidden</h1>
+                <div class="wr-strike wr-strike-left"></div>
+                <div class="wr-strike wr-strike-right"></div>
+            </header>
+
+            <section class="wr-sign-body">
+                <div class="wr-copy">
+                    <h2>Authorised Personnel Only</h2>
+                    <p>
+                        <strong>Error 403: Forbidden.</strong><br>
+                        You do not have permission to view this page.
+                        This area is restricted to administrators only.
+                    </p>
+                </div>
+                <div class="wr-circle">
+                    <svg version="1.1" viewBox="0 0 500 500" preserveAspectRatio="xMinYMin meet">
+                        <defs>
+                            <pattern id="image" patternUnits="userSpaceOnUse" height="450" width="450">
+                                <image x="25" y="25" height="450" width="450"
+                                       href="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png">
+                                </image>
+                            </pattern>
+                        </defs>
+                        <circle cx="250" cy="250" r="200" stroke-width="40px" stroke="#ef5350" fill="url(#image)" />
+                        <line x1="100" y1="100" x2="400" y2="400" stroke-width="40px" stroke="#ef5350" />
+                    </svg>
+                </div>
+            </section>
+
+            <div class="wr-sign-footer">
+                <a href="/" class="wr-btn wr-btn-home">
+                    <i class="fas fa-home"></i> Go Home
+                </a>
+                <a href="/Products" class="wr-btn wr-btn-products">
+                    Browse Products
+                </a>
+            </div>
+
+        </div>
+
+        <p class="wr-brand">WARDROBE<strong>RESCUE</strong> &copy; @DateTime.Now.Year</p>
+
+    </div>
+
+    @{
+        IgnoreBody();
+    }
+
+</body>
+</html>
