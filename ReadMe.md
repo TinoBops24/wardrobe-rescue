@@ -4,7 +4,7 @@ Wardrobe Rescue is an AI-powered fashion e-commerce platform designed for the yo
 
 Rather than presenting users with a standard product grid, the platform recommends curated outfit bundles with explainable AI scoring. Users can see why each bundle suits their style, budget, and occasion.
 
-The system was built with ASP.NET Core 9.0, Firebase Firestore, Firebase Authentication, and Google Gemini AI.
+The system is built using ASP.NET Core 9.0 Razor Pages, Firebase Firestore, Firebase Authentication, and the Google Gemini 2.5 Flash API for AI-assisted outfit recommendations.
 
 ---
 
@@ -43,7 +43,7 @@ The system was built with ASP.NET Core 9.0, Firebase Firestore, Firebase Authent
 - Razor Pages
 - Firebase Firestore
 - Firebase Authentication
-- Google Gemini AI
+- Google Gemini AI Integration
 - Azure App Service
 - HTML, CSS, JavaScript
 
