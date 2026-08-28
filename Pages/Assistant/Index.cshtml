@@ -18,6 +18,9 @@
 <div class="wr-app @(hasActiveSession ? "has-session" : "is-empty")" id="wr-app">
     <nav class="wr-rail" aria-label="Primary navigation">
         <a href="/Index" class="wr-rail-brand" aria-label="Wardrobe Rescue home">WR</a>
+        <button type="button" class="wr-rail-link wr-rail-expand" id="wr-rail-expand" title="Expand workspace sidebar" aria-label="Expand workspace sidebar">
+            <i class="fas fa-angles-right" aria-hidden="true"></i>
+        </button>
         <a href="/Products" class="wr-rail-link" title="Shop" aria-label="Shop">
             <i class="fas fa-store" aria-hidden="true"></i>
         </a>
@@ -46,6 +49,9 @@
                 <strong>Wardrobe Rescue</strong>
                 <span>AI styling workspace</span>
             </div>
+            <button type="button" class="wr-sidebar-collapse" id="wr-sidebar-collapse" title="Collapse workspace sidebar" aria-label="Collapse workspace sidebar" aria-expanded="true">
+                <i class="fas fa-angles-left" aria-hidden="true"></i>
+            </button>
             <button type="button" class="wr-sidebar-close" data-sidebar-close aria-label="Close sidebar">
                 <i class="fas fa-xmark" aria-hidden="true"></i>
             </button>
@@ -255,6 +261,8 @@
     <script>
         const app = document.getElementById('wr-app');
         const sidebarToggle = document.getElementById('wr-mobile-menu');
+        const sidebarCollapse = document.getElementById('wr-sidebar-collapse');
+        const sidebarExpand = document.getElementById('wr-rail-expand');
         const textarea = document.getElementById('wr-text-input');
         const form = document.getElementById('wr-form');
         const fileInput = document.getElementById('wr-file-input');
@@ -265,6 +273,13 @@
         function setSidebar(open) {
             app.classList.toggle('sidebar-open', open);
             sidebarToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        function setSidebarCollapsed(collapsed) {
+            app.classList.toggle('sidebar-collapsed', collapsed);
+            sidebarCollapse.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            sidebarCollapse.setAttribute('aria-label', collapsed ? 'Expand workspace sidebar' : 'Collapse workspace sidebar');
+            sidebarCollapse.title = collapsed ? 'Expand workspace sidebar' : 'Collapse workspace sidebar';
         }
 
         function resizeComposer() {
@@ -282,6 +297,9 @@
         sidebarToggle.addEventListener('click', function () {
             setSidebar(!app.classList.contains('sidebar-open'));
         });
+
+        sidebarCollapse.addEventListener('click', function () { setSidebarCollapsed(true); });
+        sidebarExpand.addEventListener('click', function () { setSidebarCollapsed(false); });
 
         document.querySelectorAll('[data-sidebar-close]').forEach(function (button) {
             button.addEventListener('click', function () { setSidebar(false); });
