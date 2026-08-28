@@ -9,7 +9,6 @@ permissions:
   id-token: write
 
 env:
-  AZURE_CORE_OUTPUT: none
   DOTNET_NOLOGO: true
 
 jobs:
