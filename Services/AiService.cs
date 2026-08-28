@@ -20,7 +20,7 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Services
             _logger = logger;
             _apiKey = configuration["Ai:GeminiApiKey"]
                           ?? throw new InvalidOperationException("Gemini API key not configured.");
-            _model = configuration["Ai:Model"] ?? "gemini-2.5-flash";
+            _model = configuration["Ai:Model"] ?? "gemini-3.1-flash-lite";
         }
 
         public async Task<AssistantConstraints> ExtractConstraintsAsync(
