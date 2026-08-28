@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no">
     <title>@ViewData["Title"] - Wardrobe Rescue</title>
 
-    <link rel="shortcut icon" href="~/porto/img/favicon.ico" type="image/x-icon" />
-    <link rel="apple-touch-icon" href="~/porto/img/apple-touch-icon.png">
+    <link rel="icon" href="~/logo/wardrobe-rescue-logo.png" type="image/png" />
+    <link rel="apple-touch-icon" href="~/logo/wardrobe-rescue-logo.png">
     <link id="googleFonts" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800%7CShadows+Into+Light%7CPlayfair+Display:400&display=swap" rel="stylesheet" type="text/css">
 
     <!-- Vendor CSS -->
@@ -84,6 +84,18 @@
         .header-container .header-row {
             padding-top: 8px !important;
             padding-bottom: 8px !important;
+        }
+
+        .wr-site-logo {
+            display: block;
+            width: auto;
+            height: 62px;
+            object-fit: contain;
+        }
+
+        .wr-footer-logo {
+            height: 82px;
+            filter: invert(1);
         }
     </style>
 
@@ -189,10 +201,11 @@
 
                                 <!-- Brand wordmark -->
                                 <div class="header-logo z-index-2 col-lg-2 px-0">
-                                    <a asp-page="/Index">
-                                        <h1 class="mb-0" style="font-family:'Poppins',sans-serif;font-size:1.3rem;font-weight:800;letter-spacing:-0.5px;line-height:1;">
-                                            Wardrobe<span style="color:var(--color-primary);">Rescue</span>
-                                        </h1>
+                                    <a asp-page="/Index" aria-label="Wardrobe Rescue home">
+                                        <img src="~/logo/wardrobe-rescue-logo.png"
+                                             alt="Wardrobe Rescue"
+                                             class="wr-site-logo"
+                                             asp-append-version="true">
                                     </a>
                                 </div>
 
@@ -376,9 +389,10 @@
                 <div class="row py-4 my-5">
                     <div class="col-md-6 col-lg-3 mb-5 mb-lg-0">
                         <a asp-page="/Index" class="d-inline-block mb-3">
-                            <img src="https://raw.githubusercontent.com/TinoBops24/wardrobe-rescue-images/main/WR-logo.png"
+                            <img src="~/logo/wardrobe-rescue-logo.png"
                                  alt="Wardrobe Rescue"
-                                 style="height:70px;width:auto;">
+                                 class="wr-site-logo wr-footer-logo"
+                                 asp-append-version="true">
                         </a>
                         <p class="mb-3">Your AI-powered fashion assistant for every occasion.</p>
                         <ul class="list list-unstyled">
