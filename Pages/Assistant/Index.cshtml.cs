@@ -16,6 +16,8 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
 
         private const string GuestSessionKey = "GuestChatSession";
 
+        private const string LastResultKey = "AssistantLastResult";
+
         public IndexModel(
             AiService aiService,
             FirestoreService firestoreService,
@@ -44,9 +46,16 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
         public ChatSession? CurrentSession { get; set; }
 
         // GET
-        public async Task<IActionResult> OnGetAsync(string? sessionId = null)
+        public async Task<IActionResult> OnGetAsync(string? sessionId = null, bool reset = false)
         {
             var userId = HttpContext.Session.GetString(SessionKeys.UserId);
+
+            if (reset)
+            {
+                HttpContext.Session.Remove(GuestSessionKey);
+                ClearLastResults();
+                return RedirectToPage();
+            }
 
             if (!string.IsNullOrEmpty(userId))
             {
@@ -58,6 +67,14 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                     CurrentSessionId = sessionId;
                 }
             }
+            else
+            {
+                var guestJson = HttpContext.Session.GetString(GuestSessionKey);
+                if (!string.IsNullOrEmpty(guestJson))
+                    CurrentSession = JsonSerializer.Deserialize<ChatSession>(guestJson);
+            }
+
+            await RestoreLastResultsAsync();
 
             return Page();
         }
@@ -87,7 +104,7 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
             if (!hasText && !hasImage)
             {
                 AssistantMessage = "Please describe your occasion or upload a clothing item to get started.";
-                return Page();
+                return RedirectToPage(new { sessionId = CurrentSessionId });
             }
 
             if (hasText && UserPrompt.Length > MaxPromptLength)
@@ -98,7 +115,7 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                     UploadedImage.Length > MaxImageSizeBytes))
             {
                 AssistantMessage = "Please upload a valid image (JPG/PNG/WEBP) under 5 MB.";
-                return Page();
+                return RedirectToPage(new { sessionId = CurrentSessionId });
             }
 
             AssistantConstraints constraints;
@@ -124,7 +141,8 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                 HasResults = false;
                 await SaveChatInteractionAsync(userId,
                     hasText ? UserPrompt : "[Image Uploaded]", AssistantMessage, null);
-                return Page();
+                ClearLastResults();
+                return RedirectToPage(new { sessionId = CurrentSessionId });
             }
 
             if (constraints.NeedsMoreInfo)
@@ -133,7 +151,8 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                 HasResults = false;
                 await SaveChatInteractionAsync(userId,
                     hasText ? UserPrompt : "[Image Uploaded]", AssistantMessage, null);
-                return Page();
+                ClearLastResults();
+                return RedirectToPage(new { sessionId = CurrentSessionId });
             }
 
             if (constraints.MaxBudget <= 0)
@@ -143,7 +162,8 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                 HasResults = false;
                 await SaveChatInteractionAsync(userId,
                     hasText ? UserPrompt : "[Image Uploaded]", AssistantMessage, null);
-                return Page();
+                ClearLastResults();
+                return RedirectToPage(new { sessionId = CurrentSessionId });
             }
 
             constraints.TargetFormality = Math.Clamp(constraints.TargetFormality, 0, 5);
@@ -173,7 +193,9 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                 AssistantMessage,
                 recommendationSummary);
 
-            return Page();
+            SaveLastResults(constraints);
+
+            return RedirectToPage(new { sessionId = CurrentSessionId });
         }
 
         // POST — Add Bundle to Cart (AJAX)
@@ -215,6 +237,49 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                 cartCount = HttpContext.Session.GetCartCount(),
                 message = $"{product.Name} added to your cart."
             });
+        }
+
+        // Post/Redirect/Get support.
+        // OnPostAsync ends in a redirect so this page's history entry is a GET.
+        // Without it, going back here after adding to cart replays the POST, which
+        // re-runs the AI call and appends the same pair of chat messages again.
+        // Only the constraints are stashed - bundles and ranked products are rebuilt
+        // from them deterministically on GET, so there is no second AI call.
+        private class LastResult
+        {
+            public string? SessionId { get; set; }
+            public AssistantConstraints Constraints { get; set; } = new();
+        }
+
+        private void SaveLastResults(AssistantConstraints constraints) =>
+            HttpContext.Session.SetString(LastResultKey, JsonSerializer.Serialize(
+                new LastResult { SessionId = CurrentSessionId, Constraints = constraints }));
+
+        private void ClearLastResults() => HttpContext.Session.Remove(LastResultKey);
+
+        private async Task RestoreLastResultsAsync()
+        {
+            var json = HttpContext.Session.GetString(LastResultKey);
+            if (string.IsNullOrEmpty(json))
+                return;
+
+            var stash = JsonSerializer.Deserialize<LastResult>(json);
+
+            // The stash belongs to one conversation - opening another chat drops it.
+            if (stash == null || stash.SessionId != CurrentSessionId)
+            {
+                ClearLastResults();
+                return;
+            }
+
+            var allProducts = (await _firestoreService.GetAllProductsAsync())
+                .Where(p => !p.IsDraft && !p.IsHiddenFromWeb)
+                .ToList();
+
+            LastConstraints = stash.Constraints;
+            RecommendedBundles = _bundleService.GenerateBundles(allProducts, stash.Constraints);
+            RecommendedProducts = RankProducts(allProducts, stash.Constraints);
+            HasResults = RecommendedBundles.Any() || RecommendedProducts.Any();
         }
 
         // Chat Persistence
