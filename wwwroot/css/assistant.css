@@ -521,6 +521,14 @@ input {
     justify-content: flex-end;
 }
 
+/* The wrapper div is the flex item, so the width cap belongs here.
+   Capping .wr-bubble-user instead resolved 78% against its own
+   shrink-to-fit wrapper, squeezing short messages until words broke. */
+.wr-msg-row.user > div {
+    min-width: 0;
+    max-width: min(78%, 620px);
+}
+
 .wr-msg-row.ai {
     align-items: flex-start;
     gap: 0.8rem;
@@ -533,14 +541,14 @@ input {
 }
 
 .wr-bubble-user {
-    max-width: min(78%, 620px);
+    max-width: 100%;
     padding: 0.7rem 0.95rem;
     border-radius: 14px 14px 4px 14px;
     color: var(--wr-ink);
     background: #ededed;
     font-size: 0.88rem;
     line-height: 1.6;
-    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .wr-bubble-ai-wrap {
@@ -553,7 +561,7 @@ input {
     background: transparent;
     font-size: 0.88rem;
     line-height: 1.7;
-    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .wr-bubble-ai strong {
