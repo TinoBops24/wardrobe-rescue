@@ -16,8 +16,6 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
 
         private const string GuestSessionKey = "GuestChatSession";
 
-        private const string LastResultKey = "AssistantLastResult";
-
         public IndexModel(
             AiService aiService,
             FirestoreService firestoreService,
@@ -38,12 +36,14 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
         [BindProperty] public string? CurrentSessionId { get; set; }
 
         public string AssistantMessage { get; set; } = string.Empty;
-        public bool HasResults { get; set; } = false;
-        public List<Bundle> RecommendedBundles { get; set; } = new();
-        public List<ScoredProduct> RecommendedProducts { get; set; } = new();
-        public AssistantConstraints? LastConstraints { get; set; }
         public List<ChatSession> PastChats { get; set; } = new();
         public ChatSession? CurrentSession { get; set; }
+
+        /// <summary>
+        /// Recommendations keyed by their position in CurrentSession.Messages, so every
+        /// turn that produced cards renders its own set and earlier ones stay on screen.
+        /// </summary>
+        public Dictionary<int, TurnResults> ResultsByMessage { get; set; } = new();
 
         // GET
         public async Task<IActionResult> OnGetAsync(string? sessionId = null, bool reset = false)
@@ -53,7 +53,6 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
             if (reset)
             {
                 HttpContext.Session.Remove(GuestSessionKey);
-                ClearLastResults();
                 return RedirectToPage();
             }
 
@@ -74,7 +73,7 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                     CurrentSession = JsonSerializer.Deserialize<ChatSession>(guestJson);
             }
 
-            await RestoreLastResultsAsync();
+            await BuildResultsAsync();
 
             return Page();
         }
@@ -150,19 +149,15 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                                    ?? "I'm your Wardrobe Rescue stylist — ask me about outfits, "
                                       + "specific pieces, or upload a photo of something you own.";
 
-                HasResults = false;
-                await SaveChatInteractionAsync(userId, text, AssistantMessage, null);
-                ClearLastResults();
+                await SaveChatInteractionAsync(userId, text, AssistantMessage, null, null);
                 return RedirectToPage(new { sessionId = CurrentSessionId });
             }
 
             if (constraints.NeedsMoreInfo)
             {
                 AssistantMessage = constraints.ClarifyingQuestion;
-                HasResults = false;
                 await SaveChatInteractionAsync(userId,
-                    hasText ? UserPrompt : "[Image Uploaded]", AssistantMessage, null);
-                ClearLastResults();
+                    hasText ? UserPrompt : "[Image Uploaded]", AssistantMessage, null, null);
                 return RedirectToPage(new { sessionId = CurrentSessionId });
             }
 
@@ -178,11 +173,8 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                 .Where(p => !p.IsDraft && !p.IsHiddenFromWeb)
                 .ToList();
 
-            RecommendedBundles = _bundleService.GenerateBundles(allProducts, constraints);
-            RecommendedProducts = RankProducts(allProducts, constraints);
-
-            LastConstraints = constraints;
-            HasResults = RecommendedBundles.Any() || RecommendedProducts.Any();
+            var bundles = _bundleService.GenerateBundles(allProducts, constraints);
+            var products = RankProducts(allProducts, constraints);
 
             var userText = hasText
                 ? UserPrompt
@@ -193,15 +185,17 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
             AssistantMessage = await _aiService.ComposeReplyAsync(
                                    history.Append(new ChatMessage { Role = "user", Text = userText }).ToList(),
                                    constraints,
-                                   BuildRetrievalBriefing(constraints, RecommendedBundles, RecommendedProducts))
-                               ?? BuildDynamicMessage(
-                                   constraints, RecommendedBundles.Count, RecommendedProducts.Count);
+                                   BuildRetrievalBriefing(constraints, bundles, products))
+                               ?? BuildDynamicMessage(constraints, bundles.Count, products.Count);
 
-            var recommendationSummary = BuildRecommendationSummary(RecommendedBundles, RecommendedProducts);
-
-            await SaveChatInteractionAsync(userId, userText, AssistantMessage, recommendationSummary);
-
-            SaveLastResults(constraints);
+            // The constraints ride along on the stored AI message so this turn's cards can
+            // be rebuilt on every later page load, alongside every earlier turn's.
+            await SaveChatInteractionAsync(
+                userId,
+                userText,
+                AssistantMessage,
+                BuildRecommendationSummary(bundles, products),
+                bundles.Any() || products.Any() ? constraints : null);
 
             return RedirectToPage(new { sessionId = CurrentSessionId });
         }
@@ -251,43 +245,46 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
         // OnPostAsync ends in a redirect so this page's history entry is a GET.
         // Without it, going back here after adding to cart replays the POST, which
         // re-runs the AI call and appends the same pair of chat messages again.
-        // Only the constraints are stashed - bundles and ranked products are rebuilt
-        // from them deterministically on GET, so there is no second AI call.
-        private class LastResult
+        // The GET rebuilds every turn's cards from the constraints stored on each
+        // message, deterministically and with no second AI call.
+        private async Task BuildResultsAsync()
         {
-            public string? SessionId { get; set; }
-            public AssistantConstraints Constraints { get; set; } = new();
-        }
-
-        private void SaveLastResults(AssistantConstraints constraints) =>
-            HttpContext.Session.SetString(LastResultKey, JsonSerializer.Serialize(
-                new LastResult { SessionId = CurrentSessionId, Constraints = constraints }));
-
-        private void ClearLastResults() => HttpContext.Session.Remove(LastResultKey);
-
-        private async Task RestoreLastResultsAsync()
-        {
-            var json = HttpContext.Session.GetString(LastResultKey);
-            if (string.IsNullOrEmpty(json))
+            var messages = CurrentSession?.Messages;
+            if (messages == null)
                 return;
 
-            var stash = JsonSerializer.Deserialize<LastResult>(json);
+            var turns = messages
+                .Select((message, index) => (message, index))
+                .Where(t => t.message.Role == "ai" && !string.IsNullOrEmpty(t.message.ConstraintsJson))
+                .ToList();
 
-            // The stash belongs to one conversation - opening another chat drops it.
-            if (stash == null || stash.SessionId != CurrentSessionId)
-            {
-                ClearLastResults();
+            if (turns.Count == 0)
                 return;
-            }
 
             var allProducts = (await _firestoreService.GetAllProductsAsync())
                 .Where(p => !p.IsDraft && !p.IsHiddenFromWeb)
                 .ToList();
 
-            LastConstraints = stash.Constraints;
-            RecommendedBundles = _bundleService.GenerateBundles(allProducts, stash.Constraints);
-            RecommendedProducts = RankProducts(allProducts, stash.Constraints);
-            HasResults = RecommendedBundles.Any() || RecommendedProducts.Any();
+            foreach (var (message, index) in turns)
+            {
+                AssistantConstraints? constraints;
+                try
+                {
+                    constraints = JsonSerializer.Deserialize<AssistantConstraints>(message.ConstraintsJson!);
+                }
+                catch (JsonException)
+                {
+                    continue; // A turn we can no longer rebuild renders as text only.
+                }
+
+                if (constraints == null)
+                    continue;
+
+                ResultsByMessage[index] = new TurnResults(
+                    _bundleService.GenerateBundles(allProducts, constraints),
+                    RankProducts(allProducts, constraints),
+                    constraints.IsProductSearch);
+            }
         }
 
         // Chat Persistence
@@ -295,7 +292,8 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
             string? userId,
             string userText,
             string aiText,
-            string? recommendationSummary)
+            string? recommendationSummary,
+            AssistantConstraints? constraints)
         {
             // Append a structured summary of what was recommended to the stored AI message
             // so that future turns have full context about which specific items were shown.
@@ -305,13 +303,24 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
 
             var timestamp = Timestamp.GetCurrentTimestamp();
 
+            var turn = new[]
+            {
+                new ChatMessage { Role = "user", Text = userText, Timestamp = timestamp },
+                new ChatMessage
+                {
+                    Role = "ai",
+                    Text = storedAiText,
+                    Timestamp = timestamp,
+                    ConstraintsJson = constraints == null
+                        ? null
+                        : JsonSerializer.Serialize(constraints)
+                }
+            };
+
             if (string.IsNullOrEmpty(userId))
             {
                 CurrentSession ??= new ChatSession();
-                CurrentSession.Messages.Add(new ChatMessage
-                { Role = "user", Text = userText, Timestamp = timestamp });
-                CurrentSession.Messages.Add(new ChatMessage
-                { Role = "ai", Text = storedAiText, Timestamp = timestamp });
+                CurrentSession.Messages.AddRange(turn);
 
                 HttpContext.Session.SetString(GuestSessionKey,
                     JsonSerializer.Serialize(CurrentSession));
@@ -335,10 +344,7 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                 };
             }
 
-            session.Messages.Add(new ChatMessage
-            { Role = "user", Text = userText, Timestamp = timestamp });
-            session.Messages.Add(new ChatMessage
-            { Role = "ai", Text = storedAiText, Timestamp = timestamp });
+            session.Messages.AddRange(turn);
 
             await _firestoreService.SaveChatSessionAsync(session);
 
@@ -552,6 +558,12 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                 .ToList();
         }
     }
+
+    /// <summary>
+    /// One chat turn's recommendations, rendered under that turn's message.
+    /// IsProductSearch decides the order: pieces lead a product search, outfits lead a brief.
+    /// </summary>
+    public record TurnResults(List<Bundle> Bundles, List<ScoredProduct> Products, bool IsProductSearch);
 
     public class ScoredProduct
     {

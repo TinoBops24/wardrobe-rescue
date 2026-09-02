@@ -32,5 +32,17 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Models
 
         [FirestoreProperty("timestamp")]
         public Timestamp Timestamp { get; set; }
+
+        /// <summary>
+        /// Serialised AssistantConstraints for an AI turn that produced recommendations,
+        /// null for every other message. The engine is deterministic, so this rebuilds
+        /// that turn's cards on any later load — which is what keeps older
+        /// recommendations on screen instead of only the newest. JSON because
+        /// AssistantConstraints is a plain POCO, not [FirestoreData].
+        /// ponytail: recomputed, not snapshotted — a catalogue edit can change what an
+        /// old bubble shows. Persist the resolved product IDs if that ever matters.
+        /// </summary>
+        [FirestoreProperty("constraints")]
+        public string? ConstraintsJson { get; set; }
     }
 }
