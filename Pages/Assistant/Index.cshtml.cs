@@ -173,7 +173,7 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                 .Where(p => !p.IsDraft && !p.IsHiddenFromWeb)
                 .ToList();
 
-            var bundles = _bundleService.GenerateBundles(allProducts, constraints);
+            var bundles = await CurateOutfitsAsync(allProducts, constraints);
             var products = RankProducts(allProducts, constraints);
 
             var userText = hasText
@@ -195,7 +195,8 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                 userText,
                 AssistantMessage,
                 BuildRecommendationSummary(bundles, products),
-                bundles.Any() || products.Any() ? constraints : null);
+                bundles.Any() || products.Any() ? constraints : null,
+                bundles);
 
             return RedirectToPage(new { sessionId = CurrentSessionId });
         }
@@ -241,6 +242,26 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
             });
         }
 
+        /// <summary>
+        /// Shortlist, curate, validate, fall back. The model picks from products the
+        /// engine already approved, and only looks that survive validation and scoring
+        /// are shown. An empty or unusable result drops through to the recipes, so a bad
+        /// AI turn costs coherence, never the recommendation itself.
+        /// </summary>
+        private async Task<List<Bundle>> CurateOutfitsAsync(
+            List<Product> allProducts,
+            AssistantConstraints constraints)
+        {
+            var shortlist = _bundleService.BuildShortlist(allProducts, constraints);
+            var proposals = await _aiService.CurateOutfitsAsync(shortlist, constraints);
+            var curated = _bundleService.ValidateProposals(proposals, shortlist, constraints);
+
+            if (curated.Count > 0)
+                return curated;
+
+            return _bundleService.GenerateBundles(allProducts, constraints);
+        }
+
         // Post/Redirect/Get support.
         // OnPostAsync ends in a redirect so this page's history entry is a GET.
         // Without it, going back here after adding to cart replays the POST, which
@@ -268,9 +289,13 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
             foreach (var (message, index) in turns)
             {
                 AssistantConstraints? constraints;
+                List<OutfitProposal>? shown = null;
                 try
                 {
                     constraints = JsonSerializer.Deserialize<AssistantConstraints>(message.ConstraintsJson!);
+
+                    if (!string.IsNullOrEmpty(message.OutfitsJson))
+                        shown = JsonSerializer.Deserialize<List<OutfitProposal>>(message.OutfitsJson);
                 }
                 catch (JsonException)
                 {
@@ -280,8 +305,15 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                 if (constraints == null)
                     continue;
 
+                // Replay the outfits this turn showed. Turns saved before outfits were
+                // stored fall back to the recipes, which is what they showed anyway.
+                var bundles = shown == null
+                    ? _bundleService.GenerateBundles(allProducts, constraints)
+                    : _bundleService.ValidateProposals(
+                        shown, _bundleService.BuildShortlist(allProducts, constraints), constraints);
+
                 ResultsByMessage[index] = new TurnResults(
-                    _bundleService.GenerateBundles(allProducts, constraints),
+                    bundles,
                     RankProducts(allProducts, constraints),
                     constraints.IsProductSearch);
             }
@@ -293,7 +325,8 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
             string userText,
             string aiText,
             string? recommendationSummary,
-            AssistantConstraints? constraints)
+            AssistantConstraints? constraints,
+            List<Bundle>? bundles = null)
         {
             // Append a structured summary of what was recommended to the stored AI message
             // so that future turns have full context about which specific items were shown.
@@ -313,7 +346,11 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                     Timestamp = timestamp,
                     ConstraintsJson = constraints == null
                         ? null
-                        : JsonSerializer.Serialize(constraints)
+                        : JsonSerializer.Serialize(constraints),
+                    OutfitsJson = bundles == null || bundles.Count == 0
+                        ? null
+                        : JsonSerializer.Serialize(bundles.Select(b =>
+                            new OutfitProposal { Name = b.Name, ProductIds = b.ItemIds }))
                 }
             };
 

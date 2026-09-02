@@ -35,4 +35,14 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Models
         /// </summary>
         public List<Product> ResolvedProducts { get; set; } = new();
     }
+
+    /// <summary>
+    /// An outfit the AI proposed from the shortlist it was shown. Untrusted until
+    /// BundleService.ValidateProposals resolves every id and scores the result.
+    /// </summary>
+    public class OutfitProposal
+    {
+        public string Name { get; set; } = string.Empty;
+        public List<string> ProductIds { get; set; } = new();
+    }
 }

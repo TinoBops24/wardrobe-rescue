@@ -44,5 +44,17 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Models
         /// </summary>
         [FirestoreProperty("constraints")]
         public string? ConstraintsJson { get; set; }
+
+        /// <summary>
+        /// The outfits this turn actually showed, as name + product ids. Curation is an
+        /// AI call and so is not reproducible — unlike the ranked pieces, an outfit
+        /// cannot be recomputed on a later load, it has to be replayed from here.
+        /// Ids are re-resolved and re-validated on render, so a piece that has since
+        /// been pulled from the catalogue simply drops out of the look.
+        /// ponytail: a recipe fallback replayed this way loses its "missing slot" risk
+        /// flag. Snapshot RiskFlags too if that ever reads wrong.
+        /// </summary>
+        [FirestoreProperty("outfits")]
+        public string? OutfitsJson { get; set; }
     }
 }
