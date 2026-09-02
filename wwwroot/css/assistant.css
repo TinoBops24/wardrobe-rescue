@@ -607,6 +607,17 @@ input {
     color: var(--wr-accent-dark) !important;
 }
 
+/* Recommended pieces link through to their store page. Underline on hover only,
+   so the cards stay clean but the names read as clickable. */
+.wr-results-area .wr-product-link {
+    text-decoration: none;
+}
+
+.wr-results-area .wr-product-link:hover,
+.wr-results-area .wr-product-link:focus-visible {
+    text-decoration: underline;
+}
+
 .wr-input-area {
     position: absolute;
     z-index: 12;

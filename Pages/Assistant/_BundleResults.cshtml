@@ -26,12 +26,15 @@
                         <!-- Image grid -->
                         <div class="col-5">
                             <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:4px; background:#fff; padding:8px; border-radius:8px; aspect-ratio:1;">
+                                @* An outfit has no page of its own, so each piece links to its own. *@
                                 @foreach (var p in bundle.ResolvedProducts.Take(4))
                                 {
-                                    <div style="overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f9f9f9;">
+                                    <a asp-page="/Products/Details" asp-route-id="@p.Id"
+                                       title="View @p.Name in the store"
+                                       style="overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f9f9f9;">
                                         <img src="@p.ImageUrl" alt="@p.Name"
                                              style="width:100%; height:100%; object-fit:contain; padding:4px;" />
-                                    </div>
+                                    </a>
                                 }
                             </div>
                         </div>
@@ -65,10 +68,14 @@
                                     </div>
                                 }
 
-                                <div class="mb-2" style="font-size: 0.75rem; color: #666;">
+                                <div class="mb-2" style="font-size: 0.75rem;">
                                     @foreach (var p in bundle.ResolvedProducts)
                                     {
-                                        <span class="d-block">• @p.Name</span>
+                                        <span class="d-block" style="color:#666;">
+                                            •
+                                            <a asp-page="/Products/Details" asp-route-id="@p.Id"
+                                               class="wr-product-link" style="color:#666;">@p.Name</a>
+                                        </span>
                                     }
                                 </div>
 

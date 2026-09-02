@@ -239,6 +239,106 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Services
                 """;
         }
 
+        /// <summary>
+        /// Asks the model to build outfits out of a shortlist it is shown, returning the
+        /// product ids it chose. Nothing here is trusted: BundleService.ValidateProposals
+        /// resolves every id against the same shortlist and scores what survives, so a
+        /// hallucinated product simply never appears.
+        /// </summary>
+        public async Task<List<OutfitProposal>> CurateOutfitsAsync(
+            List<Product> shortlist,
+            AssistantConstraints constraints)
+        {
+            if (shortlist.Count == 0)
+                return new List<OutfitProposal>();
+
+            try
+            {
+                var catalogue = string.Join("\n", shortlist.Select(p =>
+                    $"{p.Id} | {p.Name} | {p.Category} | formality {p.FormalityScore} | {p.DominantColor} | R{p.DiscountPrice ?? p.Price:N0}"));
+
+                var budget = constraints.MaxBudget > 0 ? $"R{constraints.MaxBudget:N0}" : "not stated";
+
+                var prompt = $"""
+                    Occasion: {constraints.OccasionContext}
+                    Shopping for: {constraints.Gender}
+                    Budget for the whole outfit: {budget}
+                    Target formality (1 casual - 5 formal): {constraints.TargetFormality}
+                    Must include if possible: {(string.IsNullOrEmpty(constraints.AnchorItem) ? "nothing specific" : constraints.AnchorItem)}
+
+                    CATALOGUE (id | name | category | formality | colour | price):
+                    {catalogue}
+                    """;
+
+                var requestBody = new
+                {
+                    system_instruction = new
+                    {
+                        parts = new[] { new { text = BuildCuratorPrompt() } }
+                    },
+                    contents = new[]
+                    {
+                        new { role = "user", parts = new[] { new { text = prompt } } }
+                    },
+                    generationConfig = new { temperature = 0.4, maxOutputTokens = 1200 }
+                };
+
+                var response = await PostAsync(BuildUrl(), requestBody);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Gemini curator returned {Status}", response.StatusCode);
+                    return new List<OutfitProposal>();
+                }
+
+                var json = ExtractJson(ExtractText(await response.Content.ReadAsStringAsync()));
+
+                var proposals = JsonSerializer.Deserialize<List<OutfitProposal>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                return proposals ?? new List<OutfitProposal>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "AiService failed to curate outfits - caller falls back to the recipes");
+                return new List<OutfitProposal>();
+            }
+        }
+
+        private static string BuildCuratorPrompt()
+        {
+            return """
+                You are a stylist building complete outfits for Wardrobe Rescue out of a
+                fixed catalogue. You will be given the brief and every product you are
+                allowed to use.
+
+                ABSOLUTE OUTPUT RULE:
+                Return ONLY a raw JSON array. No markdown, no code fences, no prose.
+                The first character must be [ and the last must be ].
+                Each element: {"Name": string, "ProductIds": [string, ...]}
+
+                Propose 1 to 3 outfits, best first.
+
+                HARD RULES - a look that breaks one is thrown away by the validator:
+                - Use ONLY ids copied exactly from the catalogue. Never invent an id,
+                  never alter one, never use a product name in place of an id.
+                - 3 to 5 pieces per outfit.
+                - One item per category. Never two Tops, never two pairs of Shoes.
+                - Keep formality within 2 points across the pieces - no dinner jacket
+                  with a graphic tee.
+                - Keep the outfit total near the stated budget where one is given.
+
+                STYLING:
+                Build looks a person would actually wear together - colour that works,
+                proportion that works, right for the stated occasion. Prefer a coherent
+                outfit over cramming in the most expensive pieces. If the catalogue
+                cannot make a real outfit for this brief, return [].
+
+                Name each outfit in 2 to 4 words, evocative and specific to the look
+                ("Charcoal Interview Sharp"). Never number them, never call one "Outfit 1".
+                """;
+        }
+
         /// <summary>Last 10 turns as Gemini contents. The current turn is appended by the caller.</summary>
         private static List<object> BuildContents(List<ChatMessage>? history) =>
             (history ?? new()).TakeLast(10).Select(m => (object)new
@@ -540,7 +640,8 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Services
             if (thinkEnd >= 0)
                 text = text[(thinkEnd + 8)..].Trim();
 
-            if (text.StartsWith('{'))
+            // The curator returns an array, the extractors an object.
+            if (text.StartsWith('{') || text.StartsWith('['))
                 return text;
 
             if (text.StartsWith("```"))
@@ -556,15 +657,18 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Services
                 return text.Trim();
             }
 
-            var start = text.IndexOf('{');
+            var start = text.IndexOfAny(new[] { '{', '[' });
             if (start < 0)
-                throw new JsonException("No JSON object found in Gemini response.");
+                throw new JsonException("No JSON found in Gemini response.");
+
+            var open = text[start];
+            var close = open == '[' ? ']' : '}';
 
             int depth = 0;
             for (int i = start; i < text.Length; i++)
             {
-                if (text[i] == '{') depth++;
-                else if (text[i] == '}') depth--;
+                if (text[i] == open) depth++;
+                else if (text[i] == close) depth--;
                 if (depth == 0) return text[start..(i + 1)];
             }
 
