@@ -287,21 +287,25 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Services
 
                 var resolvedProducts = new List<Product>();
                 var usedIds = new HashSet<string>();
-                var allRequiredFilled = true;
+                var missingCategories = new List<string>();
+
+                // A required slot tries the rule's formality band, then one step
+                // either side of it, before it counts as a gap.
+                Product? Pick(BundleRule rule, int tolerance) => pool
+                    .Where(p =>
+                        string.Equals(p.Category, rule.Category, StringComparison.OrdinalIgnoreCase) &&
+                        p.FormalityScore >= rule.MinFormality - tolerance &&
+                        p.FormalityScore <= rule.MaxFormality + tolerance &&
+                        !usedIds.Contains(p.Id))
+                    .OrderByDescending(p =>
+                        string.Equals(p.Gender, constraints.Gender, StringComparison.OrdinalIgnoreCase) ? 1 : 0)
+                    .ThenByDescending(p => p.FormalityScore)
+                    .ThenBy(p => p.DiscountPrice ?? p.Price)
+                    .FirstOrDefault();
 
                 foreach (var rule in definition.Rules)
                 {
-                    var candidate = pool
-                        .Where(p =>
-                            string.Equals(p.Category, rule.Category, StringComparison.OrdinalIgnoreCase) &&
-                            p.FormalityScore >= rule.MinFormality &&
-                            p.FormalityScore <= rule.MaxFormality &&
-                            !usedIds.Contains(p.Id))
-                        .OrderByDescending(p =>
-                            string.Equals(p.Gender, constraints.Gender, StringComparison.OrdinalIgnoreCase) ? 1 : 0)
-                        .ThenByDescending(p => p.FormalityScore)
-                        .ThenBy(p => p.DiscountPrice ?? p.Price)
-                        .FirstOrDefault();
+                    var candidate = Pick(rule, 0) ?? (rule.IsOptional ? null : Pick(rule, 1));
 
                     if (candidate != null)
                     {
@@ -310,12 +314,13 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Services
                     }
                     else if (!rule.IsOptional)
                     {
-                        allRequiredFilled = false;
-                        break;
+                        missingCategories.Add(rule.Category.ToLower());
                     }
                 }
 
-                if (!allRequiredFilled || resolvedProducts.Count == 0)
+                // Under three pieces is a pairing, not an outfit - the ranked
+                // individual pieces carry the answer instead.
+                if (resolvedProducts.Count < 3)
                     continue;
 
                 var totalPrice = resolvedProducts.Sum(p => (decimal)(p.DiscountPrice ?? p.Price));
@@ -334,6 +339,13 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Services
                 var riskFlags = new List<string>();
                 var scores = new Dictionary<string, double>();
                 double score = 0;
+
+                // An incomplete look is offered honestly and ranked below a complete one.
+                if (missingCategories.Count > 0)
+                {
+                    score -= 10 * missingCategories.Count;
+                    riskFlags.Add($"Nothing in the catalogue fits the {string.Join(" or ", missingCategories)} slot for this look yet - style it with your own.");
+                }
 
                 // Budget scoring
                 if (constraints.MaxBudget > 0)
@@ -366,7 +378,7 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Services
                     if (isExactMatch)
                     {
                         score += 50;
-                        riskFlags.Add($"Curated specifically for a {requestedOccasion} occasion.");
+                        riskFlags.Add($"Curated specifically for {requestedOccasion}.");
                     }
                     else if (AreOccasionsAdjacent(definition.OccasionTag, requestedOccasion))
                     {
