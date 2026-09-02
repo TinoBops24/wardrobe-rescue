@@ -15,6 +15,21 @@
     var avatarInitial = displayName[0].ToString().ToUpperInvariant();
 }
 
+@functions {
+    // Stored AI messages carry a trailing [Recommended: ...] block. It exists so later
+    // turns know which items were shown; it is internal context, never customer copy.
+    static string RenderBubble(string text)
+    {
+        var visible = System.Text.RegularExpressions.Regex.Replace(
+            text, @"\s*\[Recommended:[\s\S]*?\]\s*$", string.Empty);
+
+        return System.Text.RegularExpressions.Regex.Replace(
+            System.Net.WebUtility.HtmlEncode(visible.Trim()),
+            @"\*\*(.*?)\*\*",
+            "<strong>$1</strong>");
+    }
+}
+
 <div class="wr-app @(hasActiveSession ? "has-session" : "is-empty")" id="wr-app">
     <nav class="wr-rail" aria-label="Primary navigation">
         <a href="/Index" class="wr-rail-brand" aria-label="Wardrobe Rescue home">
@@ -169,10 +184,7 @@
                             <span class="wr-ai-avatar" aria-hidden="true"><img src="/logo/wardrobe-rescue-logo.png" alt=""></span>
                             <div class="wr-bubble-ai-wrap">
                                 <div class="wr-bubble-ai">
-                                    @Html.Raw(System.Text.RegularExpressions.Regex.Replace(
-                                        message.Text,
-                                        @"\*\*(.*?)\*\*",
-                                        "<strong>$1</strong>"))
+                                    @Html.Raw(RenderBubble(message.Text))
                                 </div>
                                 <div class="wr-msg-time">Stylist</div>
 

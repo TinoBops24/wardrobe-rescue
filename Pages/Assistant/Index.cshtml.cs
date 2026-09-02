@@ -119,28 +119,39 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
             }
 
             AssistantConstraints constraints;
+            var history = CurrentSession?.Messages ?? new List<ChatMessage>();
 
             if (hasImage)
             {
                 using var ms = new MemoryStream();
                 await UploadedImage!.CopyToAsync(ms);
                 constraints = await _aiService.ExtractConstraintsFromImageAsync(
-                    ms.ToArray(), UploadedImage.ContentType, hasText ? UserPrompt : null);
+                    ms.ToArray(), UploadedImage.ContentType, hasText ? UserPrompt : null, history);
             }
             else
             {
-                var history = CurrentSession?.Messages ?? new List<ChatMessage>();
                 constraints = await _aiService.ExtractConstraintsAsync(UserPrompt, history);
             }
 
-            if (!constraints.IsFashionRelated)
+            // Turns that need words, not a product rail: a question to answer, or an
+            // off-topic prompt to decline. Same composer, empty-handed briefing.
+            if (constraints.AnswerDirectly || !constraints.IsFashionRelated)
             {
-                AssistantMessage = "I am Wardrobe Rescue's AI Stylist. I specialise in fashion " +
-                                   "recommendations. Please ask me about outfits, specific clothing " +
-                                   "items, or upload a photo of clothing.";
+                var brief = constraints.IsFashionRelated
+                    ? "[BRIEFING - not from the customer]\nThe customer asked a question rather than for products. Nothing was retrieved, so recommend nothing specific. Answer them."
+                    : "[BRIEFING - not from the customer]\nOff-topic for a clothing store. Decline in one warm sentence and offer to help with their wardrobe instead.";
+
+                var text = hasText ? UserPrompt : "[Image Uploaded]";
+
+                AssistantMessage = await _aiService.ComposeReplyAsync(
+                                       history.Append(new ChatMessage { Role = "user", Text = text }).ToList(),
+                                       constraints,
+                                       brief)
+                                   ?? "I'm your Wardrobe Rescue stylist — ask me about outfits, "
+                                      + "specific pieces, or upload a photo of something you own.";
+
                 HasResults = false;
-                await SaveChatInteractionAsync(userId,
-                    hasText ? UserPrompt : "[Image Uploaded]", AssistantMessage, null);
+                await SaveChatInteractionAsync(userId, text, AssistantMessage, null);
                 ClearLastResults();
                 return RedirectToPage(new { sessionId = CurrentSessionId });
             }
@@ -148,17 +159,6 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
             if (constraints.NeedsMoreInfo)
             {
                 AssistantMessage = constraints.ClarifyingQuestion;
-                HasResults = false;
-                await SaveChatInteractionAsync(userId,
-                    hasText ? UserPrompt : "[Image Uploaded]", AssistantMessage, null);
-                ClearLastResults();
-                return RedirectToPage(new { sessionId = CurrentSessionId });
-            }
-
-            if (constraints.MaxBudget <= 0)
-            {
-                AssistantMessage = "Just one more thing — what's your budget? That way I can " +
-                                   "make sure every piece I recommend is the right fit for you.";
                 HasResults = false;
                 await SaveChatInteractionAsync(userId,
                     hasText ? UserPrompt : "[Image Uploaded]", AssistantMessage, null);
@@ -183,15 +183,23 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
 
             LastConstraints = constraints;
             HasResults = RecommendedBundles.Any() || RecommendedProducts.Any();
-            AssistantMessage = BuildDynamicMessage(
-                constraints, RecommendedBundles.Count, RecommendedProducts.Count);
+
+            var userText = hasText
+                ? UserPrompt
+                : $"[Uploaded Image: {constraints.UploadedItemDescription}]";
+
+            // The engine has decided what may be shown; the model decides how to say it,
+            // grounded in that exact list. Templates remain the fallback when the call fails.
+            AssistantMessage = await _aiService.ComposeReplyAsync(
+                                   history.Append(new ChatMessage { Role = "user", Text = userText }).ToList(),
+                                   constraints,
+                                   BuildRetrievalBriefing(constraints, RecommendedBundles, RecommendedProducts))
+                               ?? BuildDynamicMessage(
+                                   constraints, RecommendedBundles.Count, RecommendedProducts.Count);
 
             var recommendationSummary = BuildRecommendationSummary(RecommendedBundles, RecommendedProducts);
 
-            await SaveChatInteractionAsync(userId,
-                hasText ? UserPrompt : $"[Uploaded Image: {constraints.UploadedItemDescription}]",
-                AssistantMessage,
-                recommendationSummary);
+            await SaveChatInteractionAsync(userId, userText, AssistantMessage, recommendationSummary);
 
             SaveLastResults(constraints);
 
@@ -361,6 +369,39 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
             return string.Join(". ", parts);
         }
 
+        /// <summary>
+        /// The grounding payload for the reply composer: what was asked for and exactly
+        /// what the engine retrieved. Data only - what to DO with it is the composer's
+        /// system prompt. Anything absent here is something the model may not claim.
+        /// </summary>
+        private static string BuildRetrievalBriefing(
+            AssistantConstraints constraints,
+            List<Bundle> bundles,
+            List<ScoredProduct> products)
+        {
+            var outfits = bundles.Select(b =>
+                $"- \"{b.Name}\" (R{b.TotalPrice:N0} total): {string.Join(", ", b.ResolvedProducts.Select(p => p.Name))}"
+                + string.Concat(b.RiskFlags.Select(f => $"\n    note: {f}")));
+
+            var pieces = products.Select(p =>
+                $"- {p.Product.Name} ({p.Product.Category}, {p.Product.DominantColor}, R{p.Product.DiscountPrice ?? p.Product.Price:N0})");
+
+            return $"""
+                [BRIEFING - not from the customer]
+                Shopping for: {(string.IsNullOrEmpty(constraints.Gender) ? "unspecified" : constraints.Gender)}
+                Occasion: {constraints.OccasionContext}
+                Budget: {(constraints.MaxBudget > 0 ? $"R{constraints.MaxBudget:N0}" : "not stated - ask only if it is actually relevant")}
+                Wants: {(constraints.IsProductSearch ? $"a specific item ({constraints.AnchorItem})" : "a complete outfit")}
+                Uploaded: {(constraints.HasImageInput ? constraints.UploadedItemDescription : "nothing")}
+
+                COMPLETE OUTFITS RETRIEVED:
+                {(outfits.Any() ? string.Join("\n", outfits) : "none")}
+
+                INDIVIDUAL PIECES RETRIEVED:
+                {(pieces.Any() ? string.Join("\n", pieces) : "none")}
+                """;
+        }
+
         // Dynamic Message Builder
         private static string BuildDynamicMessage(
             AssistantConstraints constraints,
@@ -439,9 +480,14 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
                     reasons.Add($"Designed specifically for {constraints.Gender}.");
                 }
 
-                // Budget scoring
+                // Budget scoring. No budget stated means no price cap, so nothing is
+                // filtered out on price and every product scores as if it fits.
                 var price = (decimal)(product.DiscountPrice ?? product.Price);
-                if (price <= constraints.MaxBudget)
+                if (constraints.MaxBudget <= 0)
+                {
+                    score += 30;
+                }
+                else if (price <= constraints.MaxBudget)
                 {
                     score += 30;
                     reasons.Add($"Comfortably within your R{constraints.MaxBudget:N0} budget.");

@@ -38,9 +38,17 @@
   
 
         /// <summary>
-        /// False if the prompt is unrelated to fashion — triggers the guard response.
+        /// False only when the prompt has nothing to do with the store — triggers the
+        /// decline path. Store questions (sizing, delivery, returns) are related.
         /// </summary>
         public bool IsFashionRelated { get; set; } = true;
+
+        /// <summary>
+        /// True when the customer asked a question to be answered rather than a brief
+        /// to shop — sizing, fabric care, store policy, "why this one?". Skips the
+        /// ranking engine and replies conversationally.
+        /// </summary>
+        public bool AnswerDirectly { get; set; } = false;
 
         /// <summary>
         /// The occasion context extracted from the prompt e.g. "Interview", "Date Night".
