@@ -1,12 +1,14 @@
-﻿@model INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant.IndexModel
+﻿@* One turn's outfits. The bundle size modal and its script live once in
+   Index.cshtml - this partial renders per chat turn, so it must stay markup only. *@
+@model List<INF4027W_BPTTIN002_MiniPrj_2026.Models.Bundle>
 
-@if (Model.RecommendedBundles.Any())
+@if (Model.Any())
 {
     <h6 class="mt-4 mb-3 text-uppercase fw-bold text-muted" style="font-size: 0.8rem; letter-spacing: 1px;">
         Suggested Outfits
     </h6>
     <div class="row g-3">
-        @foreach (var bundle in Model.RecommendedBundles)
+        @foreach (var bundle in Model)
         {
             // Build a JSON array of {id, name, sizes} for each product in the bundle
             var bundleItemsJson = System.Text.Json.JsonSerializer.Serialize(
@@ -83,169 +85,4 @@
         }
     </div>
 
-    <!-- Bundle Size Picker Modal -->
-    <div class="modal fade" id="bundleSizeModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-3 border-0 shadow">
-                <div class="modal-header border-0 pb-0">
-                    <h6 class="modal-title fw-bold">Select Sizes for Your Outfit</h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body pt-2" id="bundleSizeBody">
-                    <!-- Populated dynamically per bundle item -->
-                </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button"
-                            class="btn btn-dark btn-sm w-100 rounded-pill"
-                            id="bundleSizeConfirm"
-                            disabled>
-                        <i class="fas fa-shopping-bag me-1"></i> Add Outfit to Cart
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        (function () {
-            // pendingBundleItems holds [{id, name, sizes, selectedSize}] for the current bundle
-            var pendingBundleItems = [];
-
-            function updateConfirmState() {
-                // Confirm is enabled only when every item with sizes has a selection
-                var allSelected = pendingBundleItems.every(function (item) {
-                    return item.sizes.length === 0 || item.selectedSize !== null;
-                });
-                document.getElementById('bundleSizeConfirm').disabled = !allSelected;
-            }
-
-            function buildSizePicker(items) {
-                var body = document.getElementById('bundleSizeBody');
-                body.innerHTML = '';
-
-                items.forEach(function (item, index) {
-                    var wrapper = document.createElement('div');
-                    wrapper.className = 'mb-3';
-
-                    var label = document.createElement('p');
-                    label.className = 'fw-semibold small mb-2';
-                    label.textContent = item.name;
-                    wrapper.appendChild(label);
-
-                    if (item.sizes.length === 0) {
-                        var noSize = document.createElement('p');
-                        noSize.className = 'text-muted small';
-                        noSize.textContent = 'One size fits all';
-                        wrapper.appendChild(noSize);
-                        pendingBundleItems[index].selectedSize = '';
-                    } else {
-                        var btnGroup = document.createElement('div');
-                        btnGroup.className = 'd-flex flex-wrap gap-2';
-
-                        item.sizes.forEach(function (size) {
-                            var sizeBtn = document.createElement('button');
-                            sizeBtn.type = 'button';
-                            sizeBtn.className = 'btn btn-outline-secondary btn-sm bundle-size-opt';
-                            sizeBtn.style.minWidth = '48px';
-                            sizeBtn.dataset.itemIndex = index;
-                            sizeBtn.dataset.size = size;
-                            sizeBtn.textContent = size;
-
-                            sizeBtn.addEventListener('click', function () {
-                                var idx = parseInt(this.dataset.itemIndex);
-                                // Deselect siblings for this item
-                                btnGroup.querySelectorAll('.bundle-size-opt').forEach(function (b) {
-                                    b.classList.remove('btn-dark');
-                                    b.classList.add('btn-outline-secondary');
-                                });
-                                this.classList.remove('btn-outline-secondary');
-                                this.classList.add('btn-dark');
-                                pendingBundleItems[idx].selectedSize = this.dataset.size;
-                                updateConfirmState();
-                            });
-
-                            btnGroup.appendChild(sizeBtn);
-                        });
-
-                        wrapper.appendChild(btnGroup);
-                    }
-
-                    body.appendChild(wrapper);
-                });
-
-                updateConfirmState();
-            }
-
-            // Open modal when "Add Outfit to Cart" is clicked
-            document.querySelectorAll('.wr-add-bundle-btn').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    var items = [];
-                    try { items = JSON.parse(this.dataset.bundleItems); } catch (e) {
-                        console.error('Bundle items parse failed:', e);
-                        return;
-                    }
-
-                    // Initialise pending items with selectedSize = null (or '' for no-size items)
-                    pendingBundleItems = items.map(function (item) {
-                        return {
-                            id:           item.id,
-                            name:         item.name,
-                            sizes:        item.sizes || [],
-                            selectedSize: item.sizes && item.sizes.length > 0 ? null : ''
-                        };
-                    });
-
-                    buildSizePicker(pendingBundleItems);
-
-                    bootstrap.Modal.getOrCreateInstance(
-                        document.getElementById('bundleSizeModal')
-                    ).show();
-                });
-            });
-
-            // Confirm — POST all items with their selected sizes
-            document.getElementById('bundleSizeConfirm').addEventListener('click', function () {
-                var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-                if (!tokenInput) {
-                    alert('Page token missing — please refresh and try again.');
-                    return;
-                }
-
-                var confirmBtn = this;
-                confirmBtn.disabled = true;
-                confirmBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin me-1"></i> Adding...';
-
-                var formData = new FormData();
-                pendingBundleItems.forEach(function (item) {
-                    formData.append('productIds', item.id);
-                    formData.append('selectedSizes', item.selectedSize ?? '');
-                });
-                formData.append('__RequestVerificationToken', tokenInput.value);
-
-                fetch('?handler=AddBundle', { method: 'POST', body: formData })
-                    .then(function (r) {
-                        if (!r.ok) throw new Error('HTTP ' + r.status);
-                        return r.json();
-                    })
-                    .then(function (data) {
-                        bootstrap.Modal.getOrCreateInstance(
-                            document.getElementById('bundleSizeModal')
-                        ).hide();
-                        if (data.success) {
-                            var badge = document.getElementById('nav-cart-count');
-                            if (badge) badge.textContent = data.cartCount;
-                            if (typeof showToast === 'function') showToast(data.message);
-                        }
-                    })
-                    .catch(function (err) {
-                        console.error('AddBundle failed:', err);
-                        if (typeof showToast === 'function') showToast('Could not add to cart. Please try again.', 'fa-circle-exclamation');
-                    })
-                    .finally(function () {
-                        confirmBtn.disabled = false;
-                        confirmBtn.innerHTML = '<i class="fas fa-shopping-bag me-1"></i> Add Outfit to Cart';
-                    });
-            });
-        })();
-    </script>
 }

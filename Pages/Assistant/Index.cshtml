@@ -6,7 +6,6 @@
     ViewData["Title"] = "AI Stylist";
     Layout = "_ChatLayout";
 
-    bool isProductSearch = Model.LastConstraints?.IsProductSearch == true;
     bool hasActiveSession = Model.CurrentSession != null && Model.CurrentSession.Messages.Any();
     var userId = HttpContext.Session.GetString(SessionKeys.UserId);
     var userName = HttpContext.Session.GetString(SessionKeys.UserName);
@@ -165,9 +164,12 @@
             }
             else
             {
-                foreach (var message in Model.CurrentSession!.Messages)
+                @* Every turn renders its own cards, so earlier recommendations stay on
+                   screen when the customer asks for something else. *@
+                for (var i = 0; i < Model.CurrentSession!.Messages.Count; i++)
                 {
-                    bool isLast = message == Model.CurrentSession.Messages.Last();
+                    var message = Model.CurrentSession.Messages[i];
+                    Model.ResultsByMessage.TryGetValue(i, out var results);
 
                     if (message.Role == "user")
                     {
@@ -188,29 +190,23 @@
                                 </div>
                                 <div class="wr-msg-time">Stylist</div>
 
-                                @if (isLast && Model.HasResults)
+                                @if (results != null)
                                 {
                                     <div class="wr-results-area">
-                                        @if (isProductSearch)
+                                        @if (results.IsProductSearch)
                                         {
-                                            @await Html.PartialAsync("_ProductResults", Model)
-                                            @if (Model.RecommendedBundles.Any())
-                                            {
-                                                @await Html.PartialAsync("_BundleResults", Model)
-                                            }
+                                            @await Html.PartialAsync("_ProductResults", results.Products)
+                                            @await Html.PartialAsync("_BundleResults", results.Bundles)
                                         }
                                         else
                                         {
-                                            @if (Model.RecommendedBundles.Any())
-                                            {
-                                                @await Html.PartialAsync("_BundleResults", Model)
-                                            }
-                                            @if (Model.RecommendedProducts.Any())
+                                            @await Html.PartialAsync("_BundleResults", results.Bundles)
+                                            @if (results.Products.Any())
                                             {
                                                 <h6 class="mt-4 mb-3 text-uppercase fw-bold" style="font-size:0.7rem; letter-spacing:1.2px; color:var(--wr-muted);">
                                                     Individual pieces
                                                 </h6>
-                                                @await Html.PartialAsync("_ProductResults", Model)
+                                                @await Html.PartialAsync("_ProductResults", results.Products)
                                             }
                                         }
                                     </div>
@@ -221,6 +217,11 @@
                 }
             }
         </div>
+
+        @if (Model.ResultsByMessage.Any())
+        {
+            @await Html.PartialAsync("_CartPickers")
+        }
 
         <div class="wr-input-area">
             <div class="wr-input-inner">
