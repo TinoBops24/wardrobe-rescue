@@ -137,7 +137,7 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
             if (constraints.AnswerDirectly || !constraints.IsFashionRelated)
             {
                 var brief = constraints.IsFashionRelated
-                    ? "[BRIEFING - not from the customer]\nThe customer asked a question rather than for products. Nothing was retrieved, so recommend nothing specific. Answer them."
+                    ? "[BRIEFING - not from the customer]\nThis turn wants words, not products — a greeting, or a question to answer. Nothing was retrieved, so name no specific item. If they have not said what they are dressing for yet, open warmly and invite the brief in your own words; otherwise just answer them."
                     : "[BRIEFING - not from the customer]\nOff-topic for a clothing store. Decline in one warm sentence and offer to help with their wardrobe instead.";
 
                 var text = hasText ? UserPrompt : "[Image Uploaded]";
