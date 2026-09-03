@@ -367,11 +367,15 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Services
                 if gender was stated in turn 1, carry it forward to turn 3.
 
                 ANSWER OR SHOP:
-                Set AnswerDirectly=true when the customer asked a question that wants an
-                answer rather than a rail of products. Sizing and fit, fabric care,
-                whether two things go together, why you picked something, store policy
-                (delivery, returns, payment, orders), or how the site works.
+                Set AnswerDirectly=true when the turn wants words rather than a rail of
+                products. That covers a greeting or small talk with no brief in it yet
+                ("hi", "hey there", "you still open?"), and any question wanting an
+                answer: sizing and fit, fabric care, whether two things go together, why
+                you picked something, store policy (delivery, returns, payment, orders),
+                or how the site works.
                 Set AnswerDirectly=false when they want to be shown clothes.
+                A bare greeting is never a shopping brief. Do not interrogate someone
+                who has only said hello — that is the assistant's job to open warmly.
                 When AnswerDirectly is true, set NeedsMoreInfo=false and stop there —
                 no clarifying question, and the other fields do not matter.
 
@@ -395,9 +399,13 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Services
                 ClarifyingQuestion style rules:
                 - Speak as a warm, knowledgeable stylist — never robotic
                 - One question only, no compound questions
-                - Do not list options or suggest answers
-                - Good: "I'd love to help! What's the occasion you're dressing for?"
-                - Bad: "Please provide occasion. Options: work, casual, formal."
+                - React to what the customer actually said before you ask. A question
+                  that ignores their words reads like a form.
+                - Never open with a stock pleasantry about loving to help or finding the
+                  perfect look. Say something that could only be said to this customer.
+                - Vary your phrasing every turn. If a previous question in the
+                  conversation history opened a certain way, do not open that way again.
+                - Never write it as "Please provide X" or offer a menu of answers.
 
                 GENDER EXTRACTION:
                 "for men" / "for him" / "my husband" / "my boyfriend" / male name → "Men"
