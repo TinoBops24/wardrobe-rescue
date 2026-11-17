@@ -79,7 +79,7 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Account
 
             if (!authResult.Succeeded)
             {
-                RegisterError = MapFirebaseError(authResult.ErrorMessage);
+                RegisterError = authResult.ErrorMessage;
                 _logger.LogWarning("Failed registration attempt for {Email}: {Error}", Email, authResult.ErrorMessage);
                 return Page();
             }
@@ -124,14 +124,5 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Account
             HttpContext.Session.SetString(SessionKeys.UserRole, profile.Role);
             HttpContext.Session.SetString(SessionKeys.UserEmail, profile.Email);
         }
-
-        private static string MapFirebaseError(string? errorMessage) =>
-            errorMessage?.ToUpperInvariant() switch
-            {
-                var e when e != null && e.Contains("EMAIL_EXISTS") => "An account with this email address already exists.",
-                var e when e != null && e.Contains("WEAK_PASSWORD") => "Password is too weak. Please use at least 6 characters.",
-                var e when e != null && e.Contains("TOO_MANY_ATTEMPTS") => "Too many attempts. Please wait a moment and try again.",
-                _ => "Something went wrong. Please try again."
-            };
     }
 }
