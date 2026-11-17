@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>Wardrobe Rescue</title>
+  <path d="M27 13a5 5 0 1 1 7.6 4.3c-1.6 1-2.6 2.2-2.6 4.1V27" stroke="#0088cc" stroke-width="4.5"/>
+  <path d="M6 27l11 24 15-24 15 24 11-24" stroke="#212529" stroke-width="4.5"/>
+</svg>

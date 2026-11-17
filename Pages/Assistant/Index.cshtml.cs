@@ -45,6 +45,9 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
         /// </summary>
         public Dictionary<int, TurnResults> ResultsByMessage { get; set; } = new();
 
+        /// <summary>A store photo per empty-state shortcut card, keyed by occasion tag.</summary>
+        public Dictionary<string, string> ShortcutImages { get; set; } = new();
+
         // GET
         public async Task<IActionResult> OnGetAsync(string? sessionId = null, bool reset = false)
         {
@@ -75,7 +78,38 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Assistant
 
             await BuildResultsAsync();
 
+            if (CurrentSession?.Messages.Any() != true)
+                await LoadShortcutImagesAsync();
+
             return Page();
+        }
+
+        // Products are cached in memory, so this costs no Firestore read after warm-up.
+        // Few products carry occasion tags, so a tag match wins and formality decides the
+        // rest. Each card gets a different piece; "" is the "Find a piece" card.
+        private async Task LoadShortcutImagesAsync()
+        {
+            var products = (await _firestoreService.GetPublishedProductsAsync())
+                .Where(p => !string.IsNullOrEmpty(p.ImageUrl))
+                .ToList();
+            var used = new HashSet<string>();
+
+            var cards = new (string Key, Func<Product, int> Rank)[]
+            {
+                ("Interview", p => p.OccasionTags.Contains("Interview") ? 100 : p.FormalityScore * 10),
+                ("Date Night", p => p.OccasionTags.Contains("Date Night") ? 100 : 50 - Math.Abs(p.FormalityScore - 4) * 10),
+                ("Smart Casual", p => p.OccasionTags.Contains("Smart Casual") ? 100 : 50 - Math.Abs(p.FormalityScore - 3) * 10),
+                ("", p => p.IsNew ? 1 : 0)
+            };
+
+            foreach (var (key, rank) in cards)
+            {
+                var pick = products.Where(p => !used.Contains(p.Id)).OrderByDescending(rank).FirstOrDefault();
+                if (pick == null) continue;
+
+                used.Add(pick.Id);
+                ShortcutImages[key] = pick.ImageUrl;
+            }
         }
 
         // POST — Main conversation handler

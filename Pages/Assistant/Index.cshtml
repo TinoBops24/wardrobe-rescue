@@ -60,7 +60,6 @@
 
     <aside class="wr-sidebar" id="wr-sidebar" aria-label="Styling workspace">
         <div class="wr-sidebar-head">
-            <span class="wr-brand-mark" aria-hidden="true"><img src="/logo/wardrobe-rescue-logo.png" alt=""></span>
             <div class="wr-sidebar-brand">
                 <strong>Wardrobe Rescue</strong>
                 <span>AI styling workspace</span>
@@ -79,24 +78,6 @@
         </a>
 
         <div class="wr-sidebar-scroll">
-            <div class="wr-sidebar-label">Style shortcuts</div>
-            <button type="button" class="wr-style-shortcut" data-prompt="Build me a complete outfit for a job interview">
-                <i class="fas fa-briefcase" aria-hidden="true"></i>
-                <span>Interview ready</span>
-            </button>
-            <button type="button" class="wr-style-shortcut" data-prompt="Create a polished date night outfit for me">
-                <i class="far fa-heart" aria-hidden="true"></i>
-                <span>Date night edit</span>
-            </button>
-            <button type="button" class="wr-style-shortcut" data-prompt="Build me a versatile smart casual outfit">
-                <i class="fas fa-shirt" aria-hidden="true"></i>
-                <span>Smart casual</span>
-            </button>
-            <button type="button" class="wr-style-shortcut" data-prompt="Show me individual pieces that can refresh my wardrobe">
-                <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
-                <span>Find a piece</span>
-            </button>
-
             <div class="wr-sidebar-label">Recent style chats</div>
             @if (!isLoggedIn)
             {
@@ -254,6 +235,37 @@
                         </button>
                     </div>
                 </form>
+
+                @if (!hasActiveSession)
+                {
+                    var shortcuts = new[]
+                    {
+                        (Key: "Interview", Label: "Interview ready", Icon: "fa-briefcase", Prompt: "Build me a complete outfit for a job interview"),
+                        (Key: "Date Night", Label: "Date night edit", Icon: "fa-heart", Prompt: "Create a polished date night outfit for me"),
+                        (Key: "Smart Casual", Label: "Smart casual", Icon: "fa-shirt", Prompt: "Build me a versatile smart casual outfit"),
+                        (Key: "", Label: "Find a piece", Icon: "fa-magnifying-glass", Prompt: "Show me individual pieces that can refresh my wardrobe")
+                    };
+
+                    <div class="wr-shortcut-cards">
+                        @foreach (var s in shortcuts)
+                        {
+                            Model.ShortcutImages.TryGetValue(s.Key, out var image);
+                            <button type="button" class="wr-shortcut-card" data-prompt="@s.Prompt">
+                                <span class="wr-shortcut-photo">
+                                    @if (!string.IsNullOrEmpty(image))
+                                    {
+                                        <img src="@image" alt="" loading="lazy">
+                                    }
+                                    else
+                                    {
+                                        <i class="fas @s.Icon" aria-hidden="true"></i>
+                                    }
+                                </span>
+                                <span class="wr-shortcut-label">@s.Label</span>
+                            </button>
+                        }
+                    </div>
+                }
 
                 <div class="wr-input-footer">
                     <span>Check sizing and availability before checkout.</span>
