@@ -87,14 +87,15 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Services
             }
         }
 
-        private static string MapErrorMessage(string? firebaseCode) => firebaseCode switch
+        // Firebase sometimes appends detail ("TOO_MANY_ATTEMPTS_TRY_LATER : ..."), so match on the code only
+        private static string MapErrorMessage(string? firebaseCode) => firebaseCode?.Split(" :")[0] switch
         {
             "EMAIL_NOT_FOUND" => "No account found with that email address.",
             "INVALID_PASSWORD" => "Incorrect password. Please try again.",
             "INVALID_LOGIN_CREDENTIALS" => "Incorrect email or password.",
             "USER_DISABLED" => "This account has been disabled. Please contact support.",
             "EMAIL_EXISTS" => "An account with this email address already exists.",
-            "WEAK_PASSWORD : Password should be at least 6 characters" => "Password must be at least 6 characters.",
+            "WEAK_PASSWORD" =>"Password must be at least 6 characters.",
             "TOO_MANY_ATTEMPTS_TRY_LATER" => "Too many failed attempts. Please try again later.",
             "OPERATION_NOT_ALLOWED" => "Email/password sign-in is not enabled. Please contact support.",
             _ => "Authentication failed. Please try again."

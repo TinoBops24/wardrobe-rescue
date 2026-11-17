@@ -73,7 +73,7 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Account
 
             if (!authResult.Succeeded)
             {
-                LoginError = MapFirebaseError(authResult.ErrorMessage);
+                LoginError = authResult.ErrorMessage;
                 _logger.LogWarning("Failed sign-in attempt for {Email}: {Error}", Email, authResult.ErrorMessage);
                 return Page();
             }
@@ -172,16 +172,5 @@ namespace INF4027W_BPTTIN002_MiniPrj_2026.Pages.Account
                 _logger.LogError(ex, "Failed to issue remember-me token for {UserId}.", profile.Id);
             }
         }
-
-        private static string MapFirebaseError(string? errorMessage) =>
-            errorMessage?.ToUpperInvariant() switch
-            {
-                var e when e != null && e.Contains("EMAIL_NOT_FOUND") => "No account found with that email address.",
-                var e when e != null && e.Contains("INVALID_PASSWORD") => "Incorrect password. Please try again.",
-                var e when e != null && e.Contains("USER_DISABLED") => "This account has been disabled. Please contact support.",
-                var e when e != null && e.Contains("TOO_MANY_ATTEMPTS") => "Too many attempts. Please wait a moment and try again.",
-                var e when e != null && e.Contains("INVALID_LOGIN_CREDENTIALS") => "Invalid email or password.",
-                _ => "Something went wrong. Please try again."
-            };
     }
 }
