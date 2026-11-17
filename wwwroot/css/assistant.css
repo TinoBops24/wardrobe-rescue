@@ -1,15 +1,17 @@
 :root {
-    --wr-accent: #1677a8;
-    --wr-accent-dark: #0d5b82;
-    --wr-accent-soft: #eaf5fa;
-    --wr-ink: #1e2329;
+    --wr-accent: #0088cc;
+    --wr-accent-dark: #006699;
+    --wr-accent-soft: #e6f3fa;
+    --wr-glow: rgba(168, 85, 247, 0.1);
+    --wr-canvas: #f7f8fc;
+    --wr-ink: #212529;
     --wr-muted: #69717c;
     --wr-line: #e5e7eb;
     --wr-panel: #f7f7f7;
     --wr-rail-width: 58px;
     --wr-sidebar-width: 306px;
     --wr-shadow: 0 12px 36px rgba(20, 29, 38, 0.08);
-    --wr-font: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --wr-font: Poppins, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 * {
@@ -255,7 +257,6 @@ input {
     text-transform: uppercase;
 }
 
-.wr-style-shortcut,
 .wr-history-item {
     display: flex;
     width: 100%;
@@ -272,14 +273,12 @@ input {
     transition: background 140ms ease, color 140ms ease;
 }
 
-.wr-style-shortcut:hover,
 .wr-history-item:hover,
 .wr-history-item.active {
     color: var(--wr-ink);
     background: #e9e9e9;
 }
 
-.wr-style-shortcut i,
 .wr-history-item i {
     width: 16px;
     flex: 0 0 auto;
@@ -288,7 +287,6 @@ input {
     font-size: 0.76rem;
 }
 
-.wr-style-shortcut span,
 .wr-history-item span {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -383,7 +381,7 @@ input {
     min-height: 0;
     flex-direction: column;
     overflow: hidden;
-    background: #fff;
+    background: var(--wr-canvas);
 }
 
 .wr-chat-header {
@@ -395,7 +393,7 @@ input {
     justify-content: space-between;
     gap: 1rem;
     padding: 0.7rem 1rem;
-    background: rgba(255, 255, 255, 0.94);
+    background: rgba(247, 248, 252, 0.92);
     border-bottom: 1px solid var(--wr-line);
     backdrop-filter: blur(14px);
 }
@@ -485,7 +483,8 @@ input {
     margin: 0 auto 1rem;
 }
 
-.wr-welcome-kicker {
+/* Scoped under .wr-welcome so it outranks the ".wr-welcome p" rule below */
+.wr-welcome .wr-welcome-kicker {
     margin: 0 0 0.45rem;
     color: var(--wr-accent-dark);
     font-size: 0.69rem;
@@ -497,9 +496,9 @@ input {
 .wr-welcome h1 {
     margin: 0;
     color: var(--wr-ink);
-    font-size: clamp(1.75rem, 3vw, 2.35rem);
-    font-weight: 750;
-    letter-spacing: -0.045em;
+    font-size: clamp(2.1rem, 4vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
 .wr-welcome p {
@@ -627,7 +626,7 @@ input {
     display: flex;
     justify-content: center;
     padding: 2.4rem max(1rem, calc((100% - 860px) / 2)) 0.8rem;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff 28%);
+    background: linear-gradient(to bottom, rgba(247, 248, 252, 0), var(--wr-canvas) 28%);
 }
 
 .wr-input-inner {
@@ -740,12 +739,12 @@ input {
 
 .wr-send-btn {
     color: #fff;
-    background: var(--wr-ink);
+    background: var(--wr-accent);
     transition: background 160ms ease, transform 160ms ease;
 }
 
 .wr-send-btn:hover {
-    background: #080a0d;
+    background: var(--wr-accent-dark);
     transform: translateY(-1px);
 }
 
@@ -768,20 +767,107 @@ input {
 }
 
 .wr-input-footer a {
-    color: #68717b;
+    color: var(--wr-accent-dark);
 }
 
 .wr-input-footer .wr-footer-separator {
     color: #c7cbd0;
 }
 
-.wr-app.is-empty .wr-input-area {
-    bottom: clamp(5.5rem, 22vh, 11rem);
-    background: transparent;
+.wr-app.is-empty .wr-chat-area {
+    overflow-y: auto;
+    background:
+        radial-gradient(ellipse 45% 40% at 78% 18%, var(--wr-glow), transparent 70%),
+        radial-gradient(ellipse 80% 60% at 50% 0%, var(--wr-accent-soft), var(--wr-canvas) 70%);
 }
 
 .wr-app.is-empty .wr-messages {
-    padding-bottom: 13rem;
+    flex: 0 0 auto;
+    margin-top: auto;
+    overflow: visible;
+    padding-bottom: 1.75rem;
+}
+
+.wr-app.is-empty .wr-welcome {
+    min-height: 0;
+    padding-bottom: 0;
+}
+
+.wr-app.is-empty .wr-input-area {
+    position: static;
+    margin-bottom: auto;
+    padding-top: 0;
+    background: transparent;
+}
+
+/* 1: occasion cards with a real piece from the store */
+.wr-shortcut-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 1.1rem;
+}
+
+.wr-shortcut-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+    border: 1px solid var(--wr-line);
+    border-radius: 14px;
+    background: #fff;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.wr-shortcut-card:hover,
+.wr-shortcut-card:focus-visible {
+    border-color: var(--wr-accent);
+    box-shadow: var(--wr-shadow);
+    transform: translateY(-2px);
+}
+
+.wr-shortcut-photo {
+    display: flex;
+    aspect-ratio: 4 / 3;
+    align-items: center;
+    justify-content: center;
+    color: var(--wr-accent);
+    background: #eef1f6;
+    font-size: 1.4rem;
+}
+
+.wr-shortcut-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 0.5rem;
+}
+
+.wr-shortcut-label {
+    padding: 0.6rem 0.75rem;
+    color: var(--wr-ink);
+    font-size: 0.8rem;
+    font-weight: 650;
+}
+
+/* 6: result cards pick up the accent */
+.wr-match-badge {
+    color: var(--wr-accent-dark);
+    background: var(--wr-accent-soft);
+}
+
+.wr-add-btn {
+    color: var(--wr-accent-dark);
+    border: 1px solid var(--wr-accent);
+}
+
+.wr-add-btn:hover,
+.wr-add-btn:focus-visible {
+    color: #fff;
+    background: var(--wr-accent);
+    border-color: var(--wr-accent);
 }
 
 .wr-typing {
@@ -947,15 +1033,26 @@ input {
         max-width: 88%;
     }
 
-    .wr-input-area,
-    .wr-app.is-empty .wr-input-area {
-        bottom: 0;
-        padding: 2rem 0.75rem 0.6rem;
-        background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff 24%);
+    .wr-app.is-empty .wr-welcome {
+        padding: 0 0.5rem;
     }
 
     .wr-app.is-empty .wr-messages {
-        padding-bottom: 158px;
+        padding: 2rem 0.85rem 1.25rem;
+    }
+
+    .wr-shortcut-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .wr-app.is-empty .wr-input-area {
+        padding: 0 0.75rem 0.6rem;
+    }
+
+    .wr-input-area {
+        bottom: 0;
+        padding: 2rem 0.75rem 0.6rem;
+        background: linear-gradient(to bottom, rgba(247, 248, 252, 0), var(--wr-canvas) 24%);
     }
 
     .wr-input-footer span:first-child {

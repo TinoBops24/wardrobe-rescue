@@ -34,7 +34,7 @@
                                         @scoredProduct.Product.Name
                                     </a>
                                 </h6>
-                                <span class="badge bg-success rounded-pill flex-shrink-0"
+                                <span class="badge wr-match-badge rounded-pill flex-shrink-0"
                                       style="font-size:0.7rem; white-space:nowrap;">
                                     @scoredProduct.Score% Match
                                 </span>
@@ -51,7 +51,7 @@
 
                     <div class="card-footer bg-white border-top-0 pt-0 pb-3 px-3">
                         <button type="button"
-                                class="btn btn-outline-dark btn-sm w-100 rounded-pill wr-open-size-picker"
+                                class="btn btn-sm w-100 rounded-pill wr-add-btn wr-open-size-picker"
                                 data-product-id="@scoredProduct.Product.Id"
                                 data-product-name="@scoredProduct.Product.Name"
                                 data-product-sizes='@Html.Raw(sizesJson)'>
